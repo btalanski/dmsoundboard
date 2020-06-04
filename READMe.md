@@ -13,6 +13,8 @@ The soundboard allows the DM to upload files from her computer and stream it to 
 
 
 To do list for V0.1.0:
+- [ ] HTTP server;
+- [ ] Webpack setup; 
 - [ ] Basic UI interface;
 - [ ] Audio upload from local files;
 - [ ] Basic audio controls (Play/Pause/Loop);
