@@ -3,7 +3,7 @@ Inspired by the likes of Tabletop Audio and Syrinscape, this project aims to del
 
 The soundboard allows the DM to upload files from her computer and stream it to other players over the internet.
 
-Features:
+## Features:
 - Support modern browsers
 - Upload of audio files
 - Realtime sound composition with multiple audio sources
@@ -13,10 +13,10 @@ Features:
 
 
 To do list for V0.1.0:
-[] Basic UI interface;
-[] Audio upload from local files;
-[] Basic audio controls (Play/Pause/Loop)
-[] WebRTC audio streaming
+- [ ] Basic UI interface;
+- [ ] Audio upload from local files;
+- [ ] Basic audio controls (Play/Pause/Loop);
+- [ ] WebRTC audio streaming;
 
 Reference material
 - [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
