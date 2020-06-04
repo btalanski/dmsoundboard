@@ -1,0 +1,11 @@
+{
+  "name": "dmsoundboard",
+  "version": "0.1.0",
+  "description": "Open source Dungeon Master soundboard",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bruno Talanski",
+  "license": "ISC"
+}
