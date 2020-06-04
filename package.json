@@ -7,7 +7,7 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Bruno Talanski (https://github.com/btalanski)",
-    "contributors": [],
+    "contributors": [{"name":"Wagner Moreira","url":"https://github.com/WagnerMoreira"}],
     "license": "ISC",
     "homepage": "https://github.com/btalanski/dmsoundboard"
 }
