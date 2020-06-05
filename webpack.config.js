@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -6,7 +7,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 var merge = require("webpack-merge");
 
 const config = merge([{
-    entry: "./src/js/index.js",
+    entry: ["./src/js/index.js"],
     output: {
         filename: "app.[hash].js",
         path: path.resolve(__dirname, "dist"),
@@ -15,6 +16,9 @@ const config = merge([{
         alias: {},
     },
     plugins: [
+        new webpack.DefinePlugin({
+            SOCKET_PORT: process.env.SOCKET_PORT || 3000,
+        }),
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             title: "Join session - DM Soundboard",
@@ -45,6 +49,9 @@ const config = merge([{
 }, ]);
 
 const devConfig = merge([{
+    entry: [
+        "webpack-hot-middleware/client?path=/__webpack_hmr&timeout=1000&reload=true",
+    ],
     module: {
         rules: [{
             test: /\.s[ac]ss$/i,
@@ -52,9 +59,7 @@ const devConfig = merge([{
         }, ],
     },
     devtool: "inline-source-map",
-    devServer: {
-        contentBase: "./dist",
-    },
+    plugins: [new webpack.HotModuleReplacementPlugin()],
 }, ]);
 
 const prodConfig = merge([{
