@@ -31,4 +31,5 @@ The soundboard allows the DM to upload files from her computer and stream it to 
 - [Audio over WebRTC](https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/webrtc-integration.html)
 - [WebRTC and Node.js: Development of a real-time video chat app](https://tsh.io/blog/how-to-write-video-chat-app-using-webrtc-and-nodejs/)
 - [MediaStream Integration](https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/webrtc-integration.html)
+- [Stream MP3 without uploading it to any server using HTML5 JavaScript APIs](https://github.com/eelcocramer/webrtc-mp3-stream)
 
