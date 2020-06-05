@@ -24,4 +24,6 @@ Reference material
 - [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 - [WebRTC documentaiton](https://developer.mozilla.org/pt-PT/docs/Web/API/API_WebRTC)
 - [Audio over WebRTC](https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/webrtc-integration.html)
+- [WebRTC and Node.js: Development of a real-time video chat app](https://tsh.io/blog/how-to-write-video-chat-app-using-webrtc-and-nodejs/)
+- [MediaStream Integration](https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/webrtc-integration.html)
 

@@ -10,7 +10,7 @@
         "start": "cross-env NODE_ENV=production nodemon ./index.js"
     },
     "author": "Bruno Talanski (https://github.com/btalanski)",
-    "contributors": [],
+    "contributors": [{ "name": "Wagner Moreira", "url": "https://github.com/WagnerMoreira" }],
     "license": "ISC",
     "homepage": "https://github.com/btalanski/dmsoundboard",
     "devDependencies": {
