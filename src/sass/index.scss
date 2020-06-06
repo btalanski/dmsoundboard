@@ -1,3 +1,95 @@
-body {
-    background: #eee;
+@import "~normalize.css/normalize.css";
+@import "variables";
+
+/* https://milligram.io/#getting-started*/
+
+@import "~milligram-sass/src/milligram";
+@import "base";
+.nav {
+    display: flex;
+    margin-bottom: 1rem;
+    background: $color-primary;
+    box-shadow: 0px 0px 10px $color-secondary;
+    >div {
+        display: flex;
+    }
+    .brand {
+        a {
+            color: $color-initial;
+            text-transform: uppercase;
+            font-weight: bold;
+            padding: 2rem;
+        }
+    }
+}
+
+.menu {
+    display: flex;
+    >a {
+        display: flex;
+        color: $color-initial;
+        padding: 2rem;
+        &:hover {
+            background: darken($color: $color-primary, $amount: 5);
+        }
+    }
+}
+
+.section {
+    margin: 3rem 2rem;
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+        margin-bottom: .5rem;
+    }
+}
+
+.title {
+    display: inline-block;
+    background: $color-tertiary;
+    color: $color-initial;
+    padding: 1rem;
+    font-weight: bold;
+}
+
+.room-link {
+    background-color: $color-quaternary;
+    display: inline-block;
+    padding: 1rem;
+    color: $color-initial;
+    a {
+        text-decoration: underline;
+        color: $color-initial;
+    }
+}
+
+.steps {
+    li {
+        margin-bottom: .5rem;
+    }
+}
+
+.soundboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    .item {
+        width: calc(20% - 1em);
+        background: $color-quaternary;
+        padding: 2rem;
+        margin: 1rem;
+        >* {
+            display: flex;
+            width: 100%;
+        }
+        .item-name {
+            font-weight: bold;
+            background-color: $color-initial;
+        }
+    }
 }
