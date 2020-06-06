@@ -24,6 +24,12 @@ module.exports = (server) => {
             socket.join(roomId);
             socket.emit("created-dm-room", roomId);
         });
+
+        socket.on("join-dm-room", (roomId) => {
+            console.log("join-dm-room", roomId);
+            socket.join(roomId);
+            socket.emit("joined-dm-room", roomId);
+        });
     });
 
     return io;
