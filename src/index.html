@@ -3,13 +3,56 @@
   <head>
     <meta charset="utf-8"/>
     <title><%= htmlWebpackPlugin.options.title %></title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
   </head>
   <body>
-    <h1>DM Soundboard</h1>
+    <nav role="main" class="nav">
+      <div class="brand">
+        <a href="#">DM Soundboard</a>
+      </div>
+      <div class="menu">
+        <a href="">Soundboard</a>
+        <a href="">About</a>
+        <a href="">Faq</a>
+      </div>
+    </nav>
 
-    <p>
-      <span>This is your room link, share with other players:</span> <a href="#" id="roomLink"></a>
-    </p>
+    <section class="section" id="header">
+      <header>
+        <h1>Soundboard</h1>
+      </header>
+      <h4>Stream sounds to your players and make your games more immersive.</h4>
+      <hr/>
+    </section>
     
+    <section class="section" id="intro">
+      <header>
+        <h3 class="title">Getting started</h3>
+      </header>
+      <ol class="steps">
+        <li>Upload some sound files to your soundboard;</li>
+        <li>Share the session link with your players so they can join ;</li>
+        <li>Start streaming sounds;</li>
+        <li>Have fun!</li>
+      </ol>
+      <p class="room-link">
+        <span>Session link:</span> <a href="#" target="_blank" id="roomLink"></a>
+      </p>
+    </section>
+
+    <section class="section">
+    <header>
+        <h4 class="title">Your sounds</h4>
+    </header>
+
+    <div class="add" id="add">
+      <form id="audioForm">
+        <label for="audioInput">Import audio file.</label>
+        <input type="file" id="audioInput" name="audioInput"/>
+      </form>
+    </div>
+    
+    <div class="soundboard" id="soundboard"></div>
+    </section>
   </body>
 </html>
