@@ -12,8 +12,4 @@ socket.on("connect", () => {
     } else {
         alert("No room to join");
     }
-
-    socket.on("joined-dm-room", (data) => {
-        console.log("joined-dm-room", data);
-    });
 });

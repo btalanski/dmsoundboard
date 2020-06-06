@@ -3,6 +3,9 @@ import io from "socket.io-client";
 
 const socket = io("http://localhost:" + SOCKET_PORT);
 
+// List of socket ids from connected players
+const playersConnected = [];
+
 const updateRoomLink = (roomId) => {
     const $roomLink = document.getElementById("roomLink");
     const url = `http://0.0.0.0:8080/session.html?roomId=${roomId}`;
@@ -54,17 +57,31 @@ const addSoundBoardItem = (userFile) => {
     $board.append($soundBoardItem);
 };
 
+const updateConnectedPlayersDisplay = () => {
+    const $elem = document.getElementById("connectedPlayers");
+    $elem.innerHTML = playersConnected.length;
+};
+
 const init = () => {
     console.log("init app...");
     const $audioInput = document.getElementById("audioInput");
     $audioInput.addEventListener("change", function() {
         addSoundBoardItem(this);
     });
+
+    updateConnectedPlayersDisplay();
 };
 
 socket.on("connect", () => {
     console.log("connected to server");
     socket.emit("create-dm-room", {});
     socket.on("created-dm-room", (data) => updateRoomLink(data));
+
+    socket.on("player-joined", (data) => {
+        console.log("player-joined");
+        console.log(data);
+        playersConnected.push(data);
+        updateConnectedPlayersDisplay();
+    });
     init();
 });

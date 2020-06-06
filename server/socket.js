@@ -16,6 +16,7 @@ module.exports = (server) => {
 
     io.on("connection", (socket) => {
         console.log("user connected");
+        const { id } = socket;
 
         socket.on("create-dm-room", () => {
             console.log("create-dm-room");
@@ -28,7 +29,7 @@ module.exports = (server) => {
         socket.on("join-dm-room", (roomId) => {
             console.log("join-dm-room", roomId);
             socket.join(roomId);
-            socket.emit("joined-dm-room", roomId);
+            socket.broadcast.emit("player-joined", id);
         });
     });
 
