@@ -19,7 +19,7 @@ if (app.get("env") === "development") {
     );
     app.use(require("webpack-hot-middleware")(compiler));
 } else {
-    app.use(express.static(process.cwd() + "/dist"));
+    app.use(express.static(path.join(process.cwd(), "/dist")));
     app.get("*", (req, res) => {
         res.sendFile(path.join(process.cwd(), "dist/index.html"));
     });

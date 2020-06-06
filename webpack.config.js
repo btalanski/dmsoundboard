@@ -4,12 +4,16 @@ const CopyPlugin = require("copy-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const ChunkManifestPlugin = require("chunk-manifest-webpack-plugin");
 var merge = require("webpack-merge");
 
 const config = merge([{
-    entry: ["./src/js/index.js"],
+    entry: {
+        app: "./src/js/index.js",
+        client: "./src/js/client.js",
+    },
     output: {
-        filename: "app.[hash].js",
+        filename: "[name].[hash:4].js",
         path: path.resolve(__dirname, "dist"),
     },
     resolve: {
@@ -31,12 +35,14 @@ const config = merge([{
             filename: "soundboard.html",
             template: "./src/soundboard.html",
             minify: false,
+            chunks: ["app"],
         }),
         new HtmlWebpackPlugin({
             title: "Session - DM Soundboard",
             filename: "session.html",
             template: "./src/session.html",
             minify: false,
+            chunks: ["client"],
         }),
         new CopyPlugin({
             patterns: [{
@@ -63,9 +69,8 @@ const devConfig = merge([{
 }, ]);
 
 const prodConfig = merge([{
-    entry: "./src/js/index.js",
     output: {
-        filename: "app.[hash].js",
+        filename: "[name].[hash:4].js",
         path: path.resolve(__dirname, "dist"),
     },
     module: {
@@ -76,7 +81,7 @@ const prodConfig = merge([{
     },
     plugins: [
         new MiniCssExtractPlugin({
-            filename: "style.[hash].css",
+            filename: "style.[hash:4].css",
         }),
     ],
 }, ]);
