@@ -93,7 +93,7 @@ const init = () => {
 // Initiates a connection request to a Peer
 const connectToPeer = (peerId) => {
     console.log("connectToPeer");
-    // const { RTCPeerConnection, RTCSessionDescription } = window;
+
     const peerConnection = new RTCPeerConnection(webRTC);
 
     // Stores peerId on a global state var
@@ -121,12 +121,18 @@ const connectToPeer = (peerId) => {
 
 socket.on("connect", () => {
     console.log("connected to server");
+
+    // Send request to create a new DM room
     socket.emit("create-dm-room");
 
+    // Response from create DM room request
     socket.on("created-dm-room", (data) => updateRoomLink(data));
 
+    // New player joined the session
     socket.on("player-joined", (playerId) => {
         console.log("player-joined", playerId);
+
+        //Update connected players array
         playersConnected.push(playerId);
         console.log("playersConnected:", playersConnected);
 
@@ -137,6 +143,7 @@ socket.on("connect", () => {
         connectToPeer(playerId);
     });
 
+    // Player left the session
     socket.on("player-left", (playerId) => {
         console.log("player-left", playerId);
 

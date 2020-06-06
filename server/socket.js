@@ -2,24 +2,67 @@ module.exports = (server) => {
     const io = require("socket.io")(server);
     io.listen(process.env.SOCKET_PORT || 3000);
 
-    const dmRoomsMap = [];
+    const roomsMap = [];
     const roomExists = (roomId) => io.nsps["/"].adapter.rooms[roomId];
+    const findRoomIndex = (roomId) =>
+        roomsMap.findIndex(({ id }) => id === roomId);
 
-    const findRoom = (roomId) => {
-        const found = dmRoomsMap.find(({ id }) => id === roomId);
-        if (found) {
-            return found;
-        }
-        return null;
-    };
     const generateRoomId = () => {
-        const id = require("shortid").generate();
-        const roomId = `room-${id}`;
+        const roomId = require("shortid").generate();
         if (roomExists(roomId)) {
             generateRoomId();
             return;
         }
-        return id;
+        return roomId;
+    };
+
+    const createRoom = (socket) => {
+        const roomId = generateRoomId();
+
+        roomsMap.push({
+            id: roomId,
+            owner: socket.id,
+            connections: [socket.id],
+        });
+
+        return roomId;
+    };
+
+    const addRoomConnection = (roomId, socket) => {
+        const index = findRoomIndex(roomId);
+
+        if (index >= 0) {
+            const isConnected = roomsMap[index].connections.find(
+                (id) => id === socket.id
+            );
+
+            if (!isConnected) {
+                roomsMap[index].connections.push(socket.id);
+                console.log(roomsMap[index]);
+                socket.join(roomId);
+                socket.to(roomsMap[index].owner).emit("player-joined", socket.id);
+            }
+        }
+    };
+
+    const removeRoomConnection = (socket) => {
+        const roomIndex = roomsMap.findIndex(({ connections = [] }) =>
+            connections.find((c) => c === socket.id)
+        );
+
+        if (roomIndex >= 0) {
+            const { owner, id } = roomsMap[roomIndex];
+            const isOwner = owner === socket.id;
+
+            if (isOwner) {
+                io.to(id).emit("dm-session-ended");
+            } else {
+                roomsMap[roomIndex].connections = roomsMap[
+                    roomIndex
+                ].connections.filter((c) => c !== socket.id);
+                socket.to(owner).emit("player-left", socket.id);
+            }
+        }
     };
 
     io.on("connection", (socket) => {
@@ -27,30 +70,19 @@ module.exports = (server) => {
 
         socket.on("create-dm-room", () => {
             console.log("create-dm-room");
-            const shortid = require("shortid");
-            const roomId = generateRoomId();
-
-            dmRoomsMap.push({
-                id: roomId,
-                dm: socket.id,
-            });
-
+            const roomId = createRoom(socket);
             socket.join(roomId);
             socket.emit("created-dm-room", roomId);
         });
 
         socket.on("join-dm-room", (roomId) => {
             console.log("join-dm-room", roomId);
-
-            const room = findRoom(roomId);
-            if (room) {
-                socket.join(roomId);
-                socket.to(room.dm).emit("player-joined", socket.id);
-            }
+            addRoomConnection(roomId, socket);
         });
 
         socket.on("disconnect", () => {
-            io.emit("player-left", socket.id);
+            console.log("disconnect");
+            removeRoomConnection(socket);
         });
 
         // WebRTC Peer candidate data
