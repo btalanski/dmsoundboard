@@ -4,7 +4,7 @@ import io from "socket.io-client";
 const socket = io("http://localhost:" + SOCKET_PORT);
 
 // List of socket ids from connected players
-const playersConnected = [];
+let playersConnected = [];
 
 const updateRoomLink = (roomId) => {
     const $roomLink = document.getElementById("roomLink");
@@ -77,11 +77,17 @@ socket.on("connect", () => {
     socket.emit("create-dm-room", {});
     socket.on("created-dm-room", (data) => updateRoomLink(data));
 
-    socket.on("player-joined", (data) => {
-        console.log("player-joined");
-        console.log(data);
-        playersConnected.push(data);
+    socket.on("player-joined", (playerId) => {
+        console.log("player-joined", playerId);
+        playersConnected.push(playerId);
         updateConnectedPlayersDisplay();
     });
+
+    socket.on("player-left", (playerId) => {
+        console.log("player-left", playerId);
+        playersConnected = playersConnected.filter((id) => id !== playerId);
+        updateConnectedPlayersDisplay();
+    });
+
     init();
 });

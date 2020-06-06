@@ -31,6 +31,10 @@ module.exports = (server) => {
             socket.join(roomId);
             socket.broadcast.emit("player-joined", id);
         });
+
+        socket.on("disconnect", () => {
+            io.emit("player-left", id);
+        });
     });
 
     return io;
