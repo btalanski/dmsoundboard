@@ -67,6 +67,7 @@ module.exports = (server) => {
 
     io.on("connection", (socket) => {
         console.log("user connected");
+        const { id } = socket;
 
         socket.on("create-dm-room", () => {
             console.log("create-dm-room");

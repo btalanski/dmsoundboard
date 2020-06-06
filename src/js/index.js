@@ -23,6 +23,9 @@ navigator.mediaDevices
     })
     .catch((error) => console.error(error));
 
+// List of socket ids from connected players
+const playersConnected = [];
+
 const updateRoomLink = (roomId) => {
     const $roomLink = document.getElementById("roomLink");
     const url = `${window.location.origin}/session.html?roomId=${roomId}`;

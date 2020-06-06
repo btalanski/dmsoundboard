@@ -15,6 +15,7 @@ const init = (roomId) => {
 
         // Join the associated DM room
         socket.emit("join-dm-room", roomId);
+<<<<<<< HEAD
 
         // WebRTC offer received from remote peer
         socket.on("webrtc-offer", (id, description) => {
@@ -74,3 +75,9 @@ if (roomId) {
 } else {
     alert("No room to join");
 }
+=======
+    } else {
+        alert("No room to join");
+    }
+});
+>>>>>>> Display connected players count
