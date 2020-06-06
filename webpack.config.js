@@ -29,14 +29,14 @@ const config = merge([{
             filename: "index.html",
             template: "./src/index.html",
             minify: false,
-            chunks: ["app"],
+            chunks: ["app", "style"],
         }),
         new HtmlWebpackPlugin({
             title: "Session - DM Soundboard",
             filename: "session.html",
             template: "./src/session.html",
             minify: false,
-            chunks: ["client"],
+            chunks: ["client", "style"],
         }),
         new CopyPlugin({
             patterns: [{
