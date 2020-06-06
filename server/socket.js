@@ -99,6 +99,10 @@ module.exports = (server) => {
         socket.on("webrtc-answer", (id, message) => {
             socket.to(id).emit("webrtc-answer", socket.id, message);
         });
+
+        socket.on("disconnect", () => {
+            io.emit("player-left", id);
+        });
     });
 
     return io;

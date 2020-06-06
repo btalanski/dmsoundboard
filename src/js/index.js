@@ -24,7 +24,7 @@ navigator.mediaDevices
     .catch((error) => console.error(error));
 
 // List of socket ids from connected players
-const playersConnected = [];
+let playersConnected = [];
 
 const updateRoomLink = (roomId) => {
     const $roomLink = document.getElementById("roomLink");
