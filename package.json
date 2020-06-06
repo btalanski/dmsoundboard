@@ -40,9 +40,10 @@
         "webpack-merge": "^4.2.2"
     },
     "dependencies": {
-        "http": "0.0.1-security",
         "express": "^4.17.1",
-        "socket.io": "^2.3.0",
-        "nodemon": "^2.0.4"
+        "http": "0.0.1-security",
+        "nodemon": "^2.0.4",
+        "shortid": "^2.2.15",
+        "socket.io": "^2.3.0"
     }
 }
