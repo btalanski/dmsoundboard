@@ -25,15 +25,9 @@ const config = merge([{
         }),
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
-            title: "Join session - DM Soundboard",
+            title: "Soundboard - DM Soundboard",
             filename: "index.html",
             template: "./src/index.html",
-            minify: false,
-        }),
-        new HtmlWebpackPlugin({
-            title: "Soundboard - DM Soundboard",
-            filename: "soundboard.html",
-            template: "./src/soundboard.html",
             minify: false,
             chunks: ["app"],
         }),
@@ -55,9 +49,16 @@ const config = merge([{
 }, ]);
 
 const devConfig = merge([{
-    entry: [
-        "webpack-hot-middleware/client?path=/__webpack_hmr&timeout=1000&reload=true",
-    ],
+    entry: {
+        app: [
+            "webpack-hot-middleware/client?path=/__webpack_hmr&timeout=1000&reload=true",
+            "./src/js/index.js",
+        ],
+        client: [
+            "webpack-hot-middleware/client?path=/__webpack_hmr&timeout=1000&reload=true",
+            "./src/js/client.js",
+        ],
+    },
     module: {
         rules: [{
             test: /\.s[ac]ss$/i,
@@ -65,7 +66,12 @@ const devConfig = merge([{
         }, ],
     },
     devtool: "inline-source-map",
-    plugins: [new webpack.HotModuleReplacementPlugin()],
+    plugins: [
+        new webpack.DefinePlugin({
+            SOCKET_PORT: process.env.SOCKET_PORT || 3000,
+        }),
+        new webpack.HotModuleReplacementPlugin(),
+    ],
 }, ]);
 
 const prodConfig = merge([{

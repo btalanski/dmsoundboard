@@ -19,6 +19,7 @@ The soundboard allows the DM to upload files from her computer and stream it to 
 - [x] HTTP server;
 - [x] Webpack setup; 
 - [x] Socket.io setup;
+- [ ] Create socket room on DM join;
 - [ ] Basic UI interface;
 - [ ] Audio upload from local files;
 - [ ] Basic audio controls (Play/Pause/Loop);
