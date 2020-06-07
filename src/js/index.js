@@ -111,7 +111,7 @@ const init = () => {
     $audioInput.addEventListener("change", function() {
         addSoundBoardItem(this);
     });
-
+    setExperimentCallback();
     updateConnectedPlayersDisplay();
 };
 
