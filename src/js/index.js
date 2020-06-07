@@ -1,7 +1,7 @@
 import "../sass/index.scss";
 import io from "socket.io-client";
 import { webRtcConfig as webRTC } from "./webRtcConfig";
-import { BufferLoader, audioContext, finishedLoading } from "./audio";
+import { audioContext } from "./audio";
 
 const socket = io(window.location.origin);
 
@@ -13,16 +13,6 @@ let playersConnected = [];
 
 // WebRTC data
 const peerConnections = {};
-const constraints = {
-    audio: false,
-    video: { width: 1280, height: 720 },
-};
-const videoPlayer = document.getElementById("videoPlayer");
-
-navigator.mediaDevices
-    .getUserMedia(constraints)
-    .then((stream) => (videoPlayer.srcObject = stream))
-    .catch((error) => console.error(error));
 
 const updateRoomLink = (roomId) => {
     const $roomLink = document.getElementById("roomLink");
@@ -98,8 +88,8 @@ const playExperiment = () => {
                 audioContext.decodeAudioData(buffer, (decodedAudioData) => {
                     testSources[index] = audioContext.createBufferSource();
                     testSources[index].buffer = decodedAudioData;
-                    testSources[index].connect(audioContext.destination);
-                    testSources[index].connect(mediaStreamDestination);
+                    testSources[index].connect(audioContext.destination); // Connect to local output device
+                    testSources[index].connect(mediaStreamDestination); // Connect to our virtual stream destination
                     testSources[index].start();
                 });
             });
@@ -132,13 +122,11 @@ const connectToPeer = (peerId) => {
     // Stores peerId on a global state var
     peerConnections[peerId] = peerConnection;
 
-    // Connects a video stream
-    let stream = videoPlayer.srcObject;
-
+    // Create an empty MediaStream so we can send the initial audio track
+    // to the connected peer
+    const stream = new MediaStream();
     const track = mediaStreamDestination.stream.getAudioTracks()[0];
     peerConnection.addTrack(track, stream);
-    // stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
-    // peerConnection.addStream(mediaStreamDestination.stream);
 
     // Called when we receive an ICE candidate
     peerConnection.onicecandidate = (event) => {
