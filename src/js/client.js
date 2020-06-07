@@ -1,6 +1,6 @@
 import io from "socket.io-client";
 const socket = io("http://localhost:" + SOCKET_PORT);
-
+console.log('###TEST')
 socket.on("connect", () => {
     console.log("connected to server");
 
