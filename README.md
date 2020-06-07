@@ -15,16 +15,22 @@ The soundboard allows the DM to upload files from her computer and stream it to 
 - Node version: ^10.0.0;
 - NPM version: ^6.9.0;
 
+## To do list for v0.2.0:
+- [ ] Control individual audio sources (play/pause/loop/stop/volume);
+- [ ] Mix audio sources and stream;
+- [ ] Add mixer master control (play/pause/loop/stop/volume);
+- [ ] Create client UI;
+- [ ] Improve UI socket events handling;
+
 ## To do list for v0.1.0:
 - [x] HTTP server;
 - [x] Webpack setup; 
 - [x] Socket.io setup;
 - [x] Create socket room on DM join;
 - [x] Allow player to join DM room;
-- [ ] Basic UI interface;
-- [ ] Audio upload from local files;
-- [ ] Basic audio controls (Play/Pause/Loop);
-- [ ] WebRTC audio streaming;
+- [x] Basic UI interface;
+- [x] Audio upload from local files;
+- [x] WebRTC audio streaming;
 
 
 ### Reference material

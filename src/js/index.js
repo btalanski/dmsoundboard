@@ -43,8 +43,13 @@ const createSoundBoardItem = () => {
     item.name = `inputName[${count.length}]`;
     itemName.classList.add("item-name");
 
-    item.append(itemName);
+    const loopControl = document.createElement("input");
+    loopControl.type = "checkbox";
+    loopControl.id = `loopControl[${count.length}]`;
+    loopControl.name = `loopControl[${count.length}]`;
 
+    item.append(itemName);
+    item.append(loopControl);
     return item;
 };
 
