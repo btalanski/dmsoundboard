@@ -1,27 +1,18 @@
 import "../sass/index.scss";
 import io from "socket.io-client";
 import { webRtcConfig as webRTC } from "./webRtcConfig";
+import { audioContext } from "./audio";
 
 const socket = io(window.location.origin);
+
+const audioSources = [];
+const mediaStreamDestination = audioContext.createMediaStreamDestination();
 
 // List of socket ids from connected players
 let playersConnected = [];
 
 // WebRTC data
 const peerConnections = {};
-const constraints = {
-    audio: false,
-    video: { width: 1280, height: 720 },
-};
-const videoPlayer = document.getElementById("videoPlayer");
-
-navigator.mediaDevices
-    .getUserMedia(constraints)
-    .then((stream) => {
-        videoPlayer.srcObject = stream;
-        socket.emit("broadcaster");
-    })
-    .catch((error) => console.error(error));
 
 const updateRoomLink = (roomId) => {
     const $roomLink = document.getElementById("roomLink");
@@ -52,8 +43,13 @@ const createSoundBoardItem = () => {
     item.name = `inputName[${count.length}]`;
     itemName.classList.add("item-name");
 
-    item.append(itemName);
+    const loopControl = document.createElement("input");
+    loopControl.type = "checkbox";
+    loopControl.id = `loopControl[${count.length}]`;
+    loopControl.name = `loopControl[${count.length}]`;
 
+    item.append(itemName);
+    item.append(loopControl);
     return item;
 };
 
@@ -66,8 +62,10 @@ const addSoundBoardItem = (userFile) => {
 
     const reader = new FileReader();
     reader.onloadend = function(file) {
+        console.log("###FILE", file);
         player.src = file.target.result;
-        player.play();
+        audioSources.push(file.target.result);
+        // player.play();
     };
     reader.readAsDataURL(userFile.files[0]);
 
@@ -80,13 +78,43 @@ const updateConnectedPlayersDisplay = () => {
     $elem.innerHTML = playersConnected.length;
 };
 
+const playExperiment = () => {
+    const testSources = [];
+    const requests = [];
+
+    audioSources.map((item) => requests.push(new Request(item)));
+
+    requests.map((req, index) => {
+        fetch(req)
+            .then((response) => {
+                return response.arrayBuffer();
+            })
+            .then((buffer) => {
+                audioContext.decodeAudioData(buffer, (decodedAudioData) => {
+                    testSources[index] = audioContext.createBufferSource();
+                    testSources[index].buffer = decodedAudioData;
+                    testSources[index].connect(audioContext.destination); // Connect to local output device
+                    testSources[index].connect(mediaStreamDestination); // Connect to our virtual stream destination
+                    testSources[index].start();
+                });
+            });
+    });
+
+    console.log("###END", audioContext, testSources);
+};
+
+const setExperimentCallback = () => {
+    const action = document.getElementById("playExperiment");
+    action.addEventListener("click", playExperiment);
+};
+
 const init = () => {
     console.log("init app...");
     const $audioInput = document.getElementById("audioInput");
     $audioInput.addEventListener("change", function() {
         addSoundBoardItem(this);
     });
-
+    setExperimentCallback();
     updateConnectedPlayersDisplay();
 };
 
@@ -99,9 +127,11 @@ const connectToPeer = (peerId) => {
     // Stores peerId on a global state var
     peerConnections[peerId] = peerConnection;
 
-    // Connects a video stream
-    let stream = videoPlayer.srcObject;
-    stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
+    // Create an empty MediaStream so we can send the initial audio track
+    // to the connected peer
+    const stream = new MediaStream();
+    const track = mediaStreamDestination.stream.getAudioTracks()[0];
+    peerConnection.addTrack(track, stream);
 
     // Called when we receive an ICE candidate
     peerConnection.onicecandidate = (event) => {

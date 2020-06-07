@@ -17,10 +17,11 @@ module.exports = (server) => {
     };
 
     const createRoom = (socket) => {
-        const roomId = generateRoomId();
+        // const roomId = generateRoomId();
+        const roomId = roomsMap.length;
 
         roomsMap.push({
-            id: roomId,
+            id: roomId.toString(),
             owner: socket.id,
             connections: [socket.id],
         });
@@ -29,7 +30,7 @@ module.exports = (server) => {
     };
 
     const addRoomConnection = (roomId, socket) => {
-        const index = findRoomIndex(roomId);
+        const index = findRoomIndex(roomId.toString());
 
         if (index >= 0) {
             const isConnected = roomsMap[index].connections.find(
@@ -67,6 +68,7 @@ module.exports = (server) => {
 
     io.on("connection", (socket) => {
         console.log("user connected");
+        const { id } = socket;
 
         socket.on("create-dm-room", () => {
             console.log("create-dm-room");
@@ -97,6 +99,10 @@ module.exports = (server) => {
 
         socket.on("webrtc-answer", (id, message) => {
             socket.to(id).emit("webrtc-answer", socket.id, message);
+        });
+
+        socket.on("disconnect", () => {
+            io.emit("player-left", id);
         });
     });
 

@@ -1,11 +1,11 @@
 import "../sass/index.scss";
 import io from "socket.io-client";
 import { webRtcConfig as webRTC } from "./webRtcConfig";
+import { audioContext } from "./audio";
 
 const init = (roomId) => {
     const socket = io(window.location.origin);
-
-    const videoPlayer = document.getElementById("videoPlayer");
+    const audioPlayer = document.getElementById("audioPlayer");
 
     // WebRTC data
     let peerConnection;
@@ -31,7 +31,15 @@ const init = (roomId) => {
 
             // Attach video track to player
             peerConnection.ontrack = (event) => {
-                videoPlayer.srcObject = event.streams[0];
+                console.log("ontrack");
+                audioPlayer.srcObject = event.streams[0];
+                audioPlayer.play();
+                // (event.streams || []).forEach((stream) => {
+                //     const peerInput = audioContext.createMediaStreamSource(
+                //         stream.getAudioTracks()[0]
+                //     );
+                //     peerInput.connect(audioContext.destination);
+                // });
             };
 
             // ICE candidate
