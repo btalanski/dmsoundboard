@@ -17,10 +17,11 @@ module.exports = (server) => {
     };
 
     const createRoom = (socket) => {
-        const roomId = generateRoomId();
+        // const roomId = generateRoomId();
+        const roomId = roomsMap.length;
 
         roomsMap.push({
-            id: roomId,
+            id: roomId.toString(),
             owner: socket.id,
             connections: [socket.id],
         });
@@ -29,7 +30,7 @@ module.exports = (server) => {
     };
 
     const addRoomConnection = (roomId, socket) => {
-        const index = findRoomIndex(roomId);
+        const index = findRoomIndex(roomId.toString());
 
         if (index >= 0) {
             const isConnected = roomsMap[index].connections.find(

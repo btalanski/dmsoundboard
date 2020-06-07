@@ -6,6 +6,7 @@ import { BufferLoader, audioContext, finishedLoading } from "./audio";
 const socket = io(window.location.origin);
 
 const audioSources = [];
+const mediaStreamDestination = audioContext.createMediaStreamDestination();
 
 // List of socket ids from connected players
 let playersConnected = [];
@@ -20,10 +21,7 @@ const videoPlayer = document.getElementById("videoPlayer");
 
 navigator.mediaDevices
     .getUserMedia(constraints)
-    .then((stream) => {
-        videoPlayer.srcObject = stream;
-        socket.emit("broadcaster");
-    })
+    .then((stream) => (videoPlayer.srcObject = stream))
     .catch((error) => console.error(error));
 
 const updateRoomLink = (roomId) => {
@@ -101,6 +99,7 @@ const playExperiment = () => {
                     testSources[index] = audioContext.createBufferSource();
                     testSources[index].buffer = decodedAudioData;
                     testSources[index].connect(audioContext.destination);
+                    testSources[index].connect(mediaStreamDestination);
                     testSources[index].start();
                 });
             });
@@ -135,7 +134,11 @@ const connectToPeer = (peerId) => {
 
     // Connects a video stream
     let stream = videoPlayer.srcObject;
-    stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
+
+    const track = mediaStreamDestination.stream.getAudioTracks()[0];
+    peerConnection.addTrack(track, stream);
+    // stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
+    // peerConnection.addStream(mediaStreamDestination.stream);
 
     // Called when we receive an ICE candidate
     peerConnection.onicecandidate = (event) => {
