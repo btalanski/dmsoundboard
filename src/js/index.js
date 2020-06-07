@@ -1,8 +1,11 @@
 import "../sass/index.scss";
 import io from "socket.io-client";
 import { webRtcConfig as webRTC } from "./webRtcConfig";
+import { BufferLoader, audioContext, finishedLoading } from "./audio";
 
 const socket = io(window.location.origin);
+
+const audioSources = [];
 
 // List of socket ids from connected players
 let playersConnected = [];
@@ -22,9 +25,6 @@ navigator.mediaDevices
         socket.emit("broadcaster");
     })
     .catch((error) => console.error(error));
-
-// List of socket ids from connected players
-let playersConnected = [];
 
 const updateRoomLink = (roomId) => {
     const $roomLink = document.getElementById("roomLink");
@@ -83,6 +83,35 @@ const updateConnectedPlayersDisplay = () => {
     console.log("updateConnectedPlayersDisplay");
     const $elem = document.getElementById("connectedPlayers");
     $elem.innerHTML = playersConnected.length;
+};
+
+const playExperiment = () => {
+    const testSources = [];
+    const requests = [];
+
+    audioSources.map((item) => requests.push(new Request(item)));
+
+    requests.map((req, index) => {
+        fetch(req)
+            .then((response) => {
+                return response.arrayBuffer();
+            })
+            .then((buffer) => {
+                audioContext.decodeAudioData(buffer, (decodedAudioData) => {
+                    testSources[index] = audioContext.createBufferSource();
+                    testSources[index].buffer = decodedAudioData;
+                    testSources[index].connect(audioContext.destination);
+                    testSources[index].start();
+                });
+            });
+    });
+
+    console.log("###END", audioContext, testSources);
+};
+
+const setExperimentCallback = () => {
+    const action = document.getElementById("playExperiment");
+    action.addEventListener("click", playExperiment);
 };
 
 const init = () => {
