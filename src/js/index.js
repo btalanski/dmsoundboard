@@ -69,8 +69,10 @@ const addSoundBoardItem = (userFile) => {
 
     const reader = new FileReader();
     reader.onloadend = function(file) {
+        console.log("###FILE", file);
         player.src = file.target.result;
-        player.play();
+        audioSources.push(file.target.result);
+        // player.play();
     };
     reader.readAsDataURL(userFile.files[0]);
 
