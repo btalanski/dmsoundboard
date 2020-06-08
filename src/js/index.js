@@ -5,7 +5,7 @@ import { audioContext } from "./audio";
 
 const socket = io(window.location.origin);
 
-const audioSources = [];
+// This is appended to our webRTC audio stream
 const mediaStreamDestination = audioContext.createMediaStreamDestination();
 
 // List of socket ids from connected players
@@ -21,55 +21,84 @@ const updateRoomLink = (roomId) => {
     $roomLink.href = url;
 };
 
-const createAudioPlayer = () => {
-    const count = document.getElementsByClassName("audio-player");
-    const player = document.createElement("audio");
-    player.id = `audio-player-${count.length}`;
-    player.classList.add("audio-player");
-    player.controls = true;
-    player.loop = true;
-    return player;
+const createAudioPlayer = (audioFile) => {
+    const count = document.getElementsByClassName("audio-player").length;
+    const audio = new Audio();
+    audio.id = `audioPlayer[${count}]`;
+    audio.classList.add("audio-player");
+    audio.controls = true;
+    audio.loop = true;
+    return preloadAudioAndConnectToStreamDestination(audioFile, audio);
 };
 
-const createSoundBoardItem = () => {
-    const count = document.getElementsByClassName("item-name");
+// To do: How can this be improved ?
+const createSoundBoardItem = (player) => {
+    console.log("createSoundBoardItem");
+    const count = document.getElementsByClassName("item-name").length;
 
     const item = document.createElement("div");
     item.classList.add("item");
 
     const itemName = document.createElement("input");
-    itemName.value = `Audio ${count.length + 1}`;
-    item.id = `inputName[${count.length}]`;
-    item.name = `inputName[${count.length}]`;
+    itemName.value = `Audio ${count + 1}`;
+    item.id = `inputName[${count}]`;
+    item.name = `inputName[${count}]`;
     itemName.classList.add("item-name");
+
+    const loopWrapper = document.createElement("div");
+    loopWrapper.classList.add("loop-wrapper");
+
+    const loopLabel = document.createElement("label");
+    loopLabel.htmlFor = `loopControl[${count}]`;
 
     const loopControl = document.createElement("input");
     loopControl.type = "checkbox";
-    loopControl.id = `loopControl[${count.length}]`;
-    loopControl.name = `loopControl[${count.length}]`;
+    loopControl.id = `loopControl[${count}]`;
+    loopControl.name = `loopControl[${count}]`;
+    loopControl.checked = true;
+
+    loopControl.addEventListener("change", function() {
+        player.loop = this.checked;
+    });
+
+    loopLabel.append(loopControl);
+    loopLabel.append("Loop");
+    loopWrapper.append(loopLabel);
 
     item.append(itemName);
-    item.append(loopControl);
+    item.append(player);
+    item.append(loopWrapper);
+
     return item;
 };
 
+// To do: Can this be improved ?
 const addSoundBoardItem = (userFile) => {
-    console.log(userFile);
+    console.log("addSoundBoardItem");
     const $board = document.getElementById("soundboard");
-    const player = createAudioPlayer();
-    const $soundBoardItem = createSoundBoardItem();
-    $soundBoardItem.append(player);
+    const player = createAudioPlayer(userFile.files[0]);
+    const $soundBoardItem = createSoundBoardItem(player);
+    $board.append($soundBoardItem);
+};
 
+// To do: Can this be improved ?
+const preloadAudioAndConnectToStreamDestination = (file, audioElem) => {
+    console.log("preloadAudioAndConnectToStreamDestination");
     const reader = new FileReader();
     reader.onloadend = function(file) {
-        console.log("###FILE", file);
-        player.src = file.target.result;
-        audioSources.push(file.target.result);
-        // player.play();
-    };
-    reader.readAsDataURL(userFile.files[0]);
+        // Sets the audio player source and start playing the track
+        audioElem.src = file.target.result;
+        audioElem.play();
 
-    $board.append($soundBoardItem);
+        // We need to connect the sound output to our webRTC stream destination
+        // so the other peers can receive the audio
+        const source = audioContext.createMediaElementSource(audioElem);
+        source.connect(mediaStreamDestination);
+    };
+
+    reader.readAsDataURL(file);
+
+    return audioElem;
 };
 
 const updateConnectedPlayersDisplay = () => {
@@ -78,44 +107,12 @@ const updateConnectedPlayersDisplay = () => {
     $elem.innerHTML = playersConnected.length;
 };
 
-const playExperiment = () => {
-    const testSources = [];
-    const requests = [];
-
-    audioSources.map((item) => requests.push(new Request(item)));
-
-    requests.map((req, index) => {
-        fetch(req)
-            .then((response) => {
-                return response.arrayBuffer();
-            })
-            .then((buffer) => {
-                audioContext.decodeAudioData(buffer, (decodedAudioData) => {
-                    testSources[index] = audioContext.createBufferSource();
-                    testSources[index].buffer = decodedAudioData;
-                    testSources[index].connect(audioContext.destination); // Connect to local output device
-                    testSources[index].connect(mediaStreamDestination); // Connect to our virtual stream destination
-                    testSources[index].start();
-                });
-            });
-    });
-
-    console.log("###END", audioContext, testSources);
-};
-
-const setExperimentCallback = () => {
-    const action = document.getElementById("playExperiment");
-    action.addEventListener("click", playExperiment);
-};
-
 const init = () => {
     console.log("init app...");
-    const $audioInput = document.getElementById("audioInput");
-    $audioInput.addEventListener("change", function() {
+
+    document.getElementById("audioInput").addEventListener("change", function() {
         addSoundBoardItem(this);
     });
-    setExperimentCallback();
-    updateConnectedPlayersDisplay();
 };
 
 // Initiates a connection request to a Peer

@@ -92,11 +92,13 @@
             background-color: $color-initial;
         }
     }
-}
-
-video {
-    width: 640px;
-    height: 360px;
-    display: inline-block;
-    object-fit: cover;
+    .loop-wrapper {
+        margin: .5rem 0;
+        * {
+            margin: 0;
+        }
+        input {
+            margin-right: .5rem;
+        }
+    }
 }
