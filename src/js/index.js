@@ -7,6 +7,7 @@ const socket = io(window.location.origin);
 
 // This is appended to our webRTC audio stream
 const mediaStreamDestination = audioContext.createMediaStreamDestination();
+const masterPlayerDestination = audioContext.createMediaStreamDestination();
 
 // List of socket ids from connected players
 let playersConnected = [];
@@ -94,6 +95,7 @@ const preloadAudioAndConnectToStreamDestination = (file, audioElem) => {
         // so the other peers can receive the audio
         const source = audioContext.createMediaElementSource(audioElem);
         source.connect(mediaStreamDestination);
+        source.connect(audioContext.destination);
     };
 
     reader.readAsDataURL(file);
@@ -112,6 +114,28 @@ const init = () => {
 
     document.getElementById("audioInput").addEventListener("change", function() {
         addSoundBoardItem(this);
+    });
+
+    // Setup for Master audio controls
+    const source = audioContext.createMediaStreamSource(
+        mediaStreamDestination.stream
+    );
+    const gainNode = audioContext.createGain();
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    const muteAudio = document.getElementById("muteAudio");
+    muteAudio.checked = false;
+    muteAudio.addEventListener("change", function() {
+        console.log("muteAudio");
+        const muteLabel = document.getElementById("muteLabel");
+        if (this.checked) {
+            muteLabel.innerHTML = "Unmute audio";
+            gainNode.gain.setValueAtTime(-1, audioContext.currentTime);
+        } else {
+            muteLabel.innerHTML = "Mute audio";
+            gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+        }
     });
 };
 
