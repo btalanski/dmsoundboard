@@ -16,8 +16,8 @@ The soundboard allows the DM to upload files from her computer and stream it to 
 - NPM version: ^6.9.0;
 
 ## To do list for v0.2.0:
-- [ ] Control individual audio sources (play/pause/loop/stop/volume);
-- [ ] Mix audio sources and stream;
+- [x] Control individual audio sources (play/pause/loop/stop/volume);
+- [x] Mix audio sources and stream;
 - [ ] Add mixer master control (play/pause/loop/stop/volume);
 - [ ] Create client UI;
 - [ ] Improve UI socket events handling;
