@@ -295,7 +295,6 @@ socket.on("connect", () => {
 
   // renegotiate bandwidth on the fly.
   bandwidthSelector.onchange = () => {
-    console.log("###DEBUG", peerConnections[playersConnected[0]]);
     const firstPlayer = peerConnections[playersConnected[0]];
 
     bandwidthSelector.disabled = true;
@@ -323,10 +322,12 @@ socket.on("connect", () => {
       } else {
         parameters.encodings[0].maxBitrate = bandwidth * 1000;
       }
+
       sender
         .setParameters(parameters)
         .then(() => {
           bandwidthSelector.disabled = false;
+          canWatchGraphs = true;
         })
         .catch((e) => console.error(e));
       return;
@@ -337,6 +338,7 @@ socket.on("connect", () => {
       .createOffer()
       .then((offer) => firstPlayer.setLocalDescription(offer))
       .then(() => {
+
         const desc = {
           type: firstPlayer.remoteDescription.type,
           sdp:
@@ -369,32 +371,23 @@ socket.on("connect", () => {
 });
 
 // query getStats every second
-
 window.setInterval(() => {
-  console.log("###OUTSIDE", canWatchGraphs);
   if (canWatchGraphs) {
-    console.log("###INSIDE");
     const firstPlayer = playersConnected.length
-      ? peerConnections[playersConnected[0]].getSenders()[0]
+      ? peerConnections[playersConnected[0]]
       : {};
-    // if (peerConnections.length && playersConnected.length) {
-    // }
 
-    console.log("###INTERVAL", firstPlayer);
     if (!firstPlayer) {
       return;
     }
 
-    console.log("###firstPlayer", firstPlayer);
-
     const sender = firstPlayer.getSenders()[0];
-    console.log("###YESSSS", sender);
+
     if (!sender) {
       return;
     }
 
     sender.getStats().then((res) => {
-      console.log("###STATUS", res);
       res.forEach((report) => {
         let bytes;
         let headerBytes;
@@ -403,6 +396,8 @@ window.setInterval(() => {
           if (report.isRemote) {
             return;
           }
+
+          console.log('###REPORT', report);
           const now = report.timestamp;
           bytes = report.bytesSent;
           headerBytes = report.headerBytesSent;
