@@ -1,7 +1,7 @@
 import "../sass/index.scss";
 import io from "socket.io-client";
-import { webRtcConfig as webRTC } from "./webRtcConfig";
-import { audioContext } from "./audio";
+import { webRtcConfig as webRTC } from "./common/webRtcConfig";
+import { audioContext } from "./common/audio";
 
 const init = (roomId) => {
     const socket = io(window.location.origin);
