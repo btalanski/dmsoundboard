@@ -1,77 +1,82 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8"/>
-    <title><%= htmlWebpackPlugin.options.title %></title>
+
+<head>
+    <meta charset="utf-8" />
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
-  </head>
-  <body>
+</head>
+
+<body>
     <nav role="main" class="nav">
-      <div class="brand">
-        <a href="#">DM Soundboard</a>
-      </div>
-      <div class="menu">
-        <a href="">Soundboard</a>
-        <a href="">About</a>
-        <a href="">Faq</a>
-      </div>
+        <div class="brand">
+            <a href="#">DM Soundboard</a>
+        </div>
+        <div class="menu">
+            <a href="">Soundboard</a>
+            <a href="">About</a>
+            <a href="">Faq</a>
+        </div>
     </nav>
 
     <section class="section" id="header">
-      <header>
-        <h1>Soundboard</h1>
-      </header>
-      <h4>Stream sounds to your players and make your games more immersive.</h4>
-      <hr/>
+        <header>
+            <h1>DM Soundboard</h1>
+        </header>
+        <h4>Stream sounds to your players and make your games more immersive.</h4>
+        <hr/>
     </section>
 
     <section class="section" id="intro">
-      <header>
-        <h3 class="title">Getting started</h3>
-      </header>
-      <div class="content">
-        <ol class="steps">
-          <li>Upload some sound files to your soundboard;</li>
-          <li>Share the session link with your players so they can join ;</li>
-          <li>Start streaming sounds;</li>
-          <li>Have fun!</li>
-        </ol>
-        <p class="room-link">
-          <span>Session link:</span> <a href="#" target="_blank" id="roomLink"></a>
-        </p>
-        <p class="room-link">
-          Connected players: <span id="connectedPlayers">0</span>
-        </p>
-      </div>
+        <header>
+            <h4 class="title">Getting started</h3>
+        </header>
+        <div class="content">
+            <ol class="steps">
+                <li>Upload some sound files to your soundboard;</li>
+                <li>Share the session link with your players so they can join ;</li>
+                <li>Have fun!</li>
+            </ol>
+            <p class="room-link">
+                <span>Session link:</span>
+                <a href="#" target="_blank" id="roomLink"></a>
+            </p>
+            <p class="room-link">
+                Connected players: <span id="connectedPlayers">0</span>
+            </p>
+        </div>
     </section>
 
     <section class="section">
-      <header>
-          <h4 class="title">Master audio</h4>
-      </header>
-      <div class="content">
-        <label for="muteAudio">
+        <header>
+            <h4 class="title">DM audio</h4>
+        </header>
+        <div class="content">
+            <label for="muteAudio">
           <input type="checkbox" name="muteAudio" id="muteAudio" />
           <span id="muteLabel">Mute audio</span>
         </label>
-        <span class="small">Changes only affect your local audio output.</span>
-      </div>
+            <span class="small">Changes only affect your local audio output.</span>
+        </div>
     </section>
 
     <section class="section">
-      <header>
-          <h4 class="title">Your sounds</h4>
-      </header>
+        <header>
+            <h4 class="title">Sound mixer</h4>
+        </header>
+        <div class="content">
+            Your audio sources can be controlled individually to create an immersive sound experience.
+        </div>
+        <div class="soundboard" id="soundboard">
 
-      <div class="add" id="add">
-        <form id="audioForm">
-          <label for="audioInput">Import audio file.</label>
-          <input type="file" id="audioInput" name="audioInput"/>
-        </form>
-      </div>
-
-      <div class="soundboard" id="soundboard"></div>
+            <div class="item upload" id="dropUpload">
+                <p>Drop files here to upload.</p>
+            </div>
+        </div>
     </section>
 
-  </body>
+</body>
+
 </html>
