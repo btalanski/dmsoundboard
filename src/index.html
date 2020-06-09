@@ -47,10 +47,9 @@
             </p>
         </div>
     </section>
-
     <section class="section">
         <header>
-            <h4 class="title">DM audio</h4>
+            <h4 class="title">Sound mixer</h4>
         </header>
         <div class="content">
             <div class="settings">
@@ -60,19 +59,10 @@
                             <input type="checkbox" name="muteAudio" id="muteAudio" />
                             Mute audio
                         </label>
-                        <span class="small">Changes only affect your local audio output.</span>
+                        <span class="small">(Changes only affect your local audio output.)</span>
                     </li>
                 </ul>
             </div>
-        </div>
-    </section>
-
-    <section class="section">
-        <header>
-            <h4 class="title">Sound mixer</h4>
-        </header>
-        <div class="content">
-            Your audio sources can be controlled individually to create an immersive sound experience.
         </div>
         <div class="soundboard" id="soundboard">
             <div class="item upload" id="dropUpload">
@@ -80,7 +70,23 @@
             </div>
         </div>
     </section>
-
+    <section class="section">
+        <header>
+            <h4 class="title">Settings</h4>
+        </header>
+        <div class="content">
+            <div class="settings">
+                <ul>
+                    <li>
+                        <label for="bandwidth">
+                      <input type="checkbox" name="bandwidth" id="bandwidth" />
+                      <span id="bandwidth">Enable bandwith controls</span>
+                    </label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
 </body>
 
 </html>
