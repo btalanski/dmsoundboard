@@ -24,7 +24,7 @@
         <header>
             <h1>DM Soundboard</h1>
         </header>
-        <h4>Stream sounds to your players and make your games more immersive.</h4>
+        <h4>Stream ambient sounds to your party and make your games more immersive.</h4>
         <hr/>
     </section>
 
@@ -34,8 +34,8 @@
         </header>
         <div class="content">
             <ol class="steps">
-                <li>Upload some sound files to your soundboard;</li>
-                <li>Share the session link with your players so they can join ;</li>
+                <li>Upload some sound files;</li>
+                <li>Share the session link with the other party members;</li>
                 <li>Have fun!</li>
             </ol>
             <p class="room-link">
@@ -53,11 +53,17 @@
             <h4 class="title">DM audio</h4>
         </header>
         <div class="content">
-            <label for="muteAudio">
-          <input type="checkbox" name="muteAudio" id="muteAudio" />
-          <span id="muteLabel">Mute audio</span>
-        </label>
-            <span class="small">Changes only affect your local audio output.</span>
+            <div class="settings">
+                <ul>
+                    <li>
+                        <label for="muteAudio">
+                            <input type="checkbox" name="muteAudio" id="muteAudio" />
+                            Mute audio
+                        </label>
+                        <span class="small">Changes only affect your local audio output.</span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </section>
 
@@ -69,7 +75,6 @@
             Your audio sources can be controlled individually to create an immersive sound experience.
         </div>
         <div class="soundboard" id="soundboard">
-
             <div class="item upload" id="dropUpload">
                 <p>Drop files here to upload.</p>
             </div>
