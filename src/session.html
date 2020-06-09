@@ -1,13 +1,74 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8"/>
-    <title><%= htmlWebpackPlugin.options.title %></title>
-  </head>
-  <body>
-    <h1>Player session</h1>
-      <section class="section" id="debug">
-      <audio id="audioPlayer" autoplay controls></audio>
+
+<head>
+    <meta charset="utf-8" />
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+</head>
+
+<body>
+    <nav role="main" class="nav">
+        <div class="brand">
+            <a href="#">DM Soundboard</a>
+        </div>
+        <div class="menu">
+            <a href="">About</a>
+            <a href="">FAQ</a>
+        </div>
+    </nav>
+    <section class="section" id="header">
+        <header>
+            <h1>RPG ambient sounds</h1>
+        </header>
+        <h4>Join a DM streaming session and immerse yourself in a world of sound.</h4>
+        <hr/>
     </section>
-  </body>
+    <section class="section">
+        <header>
+            <h4 class="title">Session</h4>
+        </header>
+        <div class="content">
+            <p class="room-link">
+                Connected players: <span id="connectedPlayers">0</span>
+            </p>
+            <div class="player">
+                <audio id="audioPlayer" autoplay controls></audio>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <header>
+            <h4 class="title">Settings</h4>
+        </header>
+        <div class="content">
+            <div class="settings">
+                <ul>
+                    <li>
+                        <label for="muteAudio">
+                      <input type="checkbox" name="muteAudio" id="muteAudio" />
+                      <span id="muteLabel">Mute audio</span>
+                    </label>
+                    </li>
+                    <li>
+                        <label for="spatialSound">
+                      <input type="checkbox" name="spatialSound" id="spatialSound" />
+                      <span id="spatialSound">Enable spatial sound</span>
+                    </label>
+                    </li>
+                    <li>
+                        <label for="bandwidth">
+                      <input type="checkbox" name="bandwidth" id="bandwidth" />
+                      <span id="bandwidth">Enable bandwith controls</span>
+                    </label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+</body>
+
 </html>

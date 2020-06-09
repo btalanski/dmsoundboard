@@ -68,6 +68,7 @@ body {
     display: inline-block;
     padding: 1rem;
     color: $color-initial;
+    margin: 0;
     a {
         text-decoration: underline;
         color: $color-initial;
@@ -119,5 +120,17 @@ body {
         text-align: center;
         font-size: 3rem;
         margin: 0
+    }
+}
+
+.settings {
+    ul {
+        li {
+            list-style: none;
+            label,
+            input {
+                margin: 0;
+            }
+        }
     }
 }
