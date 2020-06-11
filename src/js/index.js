@@ -1,7 +1,11 @@
 import io from "socket.io-client";
 import adapter from "webrtc-adapter";
-import { has } from "lodash";
 import "../sass/index.scss";
+
+import {
+  removeBandwidthRestriction,
+  updateBandwidthRestriction,
+} from "./bandwidth-controls";
 import { TimelineDataSeries, TimelineGraphView } from "../third-party/graph";
 
 import { webRtcConfig as webRTC } from "./webRtcConfig";
@@ -293,7 +297,95 @@ socket.on("connect", () => {
     peerConnections[id].addIceCandidate(new RTCIceCandidate(candidate));
   });
 
-  // renegotiate bandwidth on the fly.
+  enableBandwidthControls();
+
+  // Close the socket connection on browser window close
+  window.onbeforeunload = () => {
+    socket.close();
+    audioContext.close().then(function () {
+      console.log("audioContext closed");
+    });
+  };
+});
+
+// Query getStats every second
+// TODO: Look for a way to achieve the same results without a setInterval
+window.setInterval(() => {
+  if (canWatchGraphs) {
+    //TODO: This needs to be refactored to handle all peers.
+    const firstPlayer = playersConnected.length
+      ? peerConnections[playersConnected[0]]
+      : {};
+
+    if (!firstPlayer) {
+      return;
+    }
+
+    // What is this sender?
+    // https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpSender
+    const sender = firstPlayer.getSenders()[0];
+
+    if (!sender) {
+      return;
+    }
+
+    console.log("###SENDER", sender);
+    sender.getStats().then((res) => {
+      res.forEach((report) => {
+        let bytes;
+        let headerBytes;
+        let packets;
+        if (report.type === "outbound-rtp") {
+          if (report.isRemote) {
+            return;
+          }
+
+          const now = report.timestamp;
+          bytes = report.bytesSent;
+          headerBytes = report.headerBytesSent;
+
+          packets = report.packetsSent;
+          if (lastResult && lastResult.has(report.id)) {
+            // calculate bitrate
+            const bitrate =
+              (8 * (bytes - lastResult.get(report.id).bytesSent)) /
+              (now - lastResult.get(report.id).timestamp);
+            const headerrate =
+              (8 * (headerBytes - lastResult.get(report.id).headerBytesSent)) /
+              (now - lastResult.get(report.id).timestamp);
+
+            // append to chart
+            bitrateSeries.addPoint(now, bitrate);
+            headerrateSeries.addPoint(now, headerrate);
+            bitrateGraph.setDataSeries([bitrateSeries, headerrateSeries]);
+            bitrateGraph.updateEndDate();
+
+            // calculate number of packets and append to chart
+            packetSeries.addPoint(
+              now,
+              packets - lastResult.get(report.id).packetsSent
+            );
+            packetGraph.setDataSeries([packetSeries]);
+            packetGraph.updateEndDate();
+          }
+        }
+      });
+      lastResult = res;
+    });
+  }
+}, 1000);
+
+socket.on("connect_error", (err) => {
+  console.log(err);
+});
+socket.on("connect_failed", (err) => {
+  console.log(err);
+});
+
+// TODO: Simplify/improve readability
+const enableBandwidthControls = () => {
+  // Renegotiate bandwidth on the fly.
+  // TODO: This needs to be refactored to handle all peers.
   bandwidthSelector.onchange = () => {
     const firstPlayer = peerConnections[playersConnected[0]];
 
@@ -338,7 +430,6 @@ socket.on("connect", () => {
       .createOffer()
       .then((offer) => firstPlayer.setLocalDescription(offer))
       .then(() => {
-
         const desc = {
           type: firstPlayer.remoteDescription.type,
           sdp:
@@ -360,82 +451,4 @@ socket.on("connect", () => {
       })
       .catch(onSetSessionDescriptionError);
   };
-
-  // Close the socket connection on browser window close
-  window.onbeforeunload = () => {
-    socket.close();
-    audioContext.close().then(function () {
-      console.log("audioContext closed");
-    });
-  };
-});
-
-// query getStats every second
-window.setInterval(() => {
-  if (canWatchGraphs) {
-    const firstPlayer = playersConnected.length
-      ? peerConnections[playersConnected[0]]
-      : {};
-
-    if (!firstPlayer) {
-      return;
-    }
-
-    const sender = firstPlayer.getSenders()[0];
-
-    if (!sender) {
-      return;
-    }
-
-    sender.getStats().then((res) => {
-      res.forEach((report) => {
-        let bytes;
-        let headerBytes;
-        let packets;
-        if (report.type === "outbound-rtp") {
-          if (report.isRemote) {
-            return;
-          }
-
-          console.log('###REPORT', report);
-          const now = report.timestamp;
-          bytes = report.bytesSent;
-          headerBytes = report.headerBytesSent;
-
-          packets = report.packetsSent;
-          if (lastResult && lastResult.has(report.id)) {
-            // calculate bitrate
-            const bitrate =
-              (8 * (bytes - lastResult.get(report.id).bytesSent)) /
-              (now - lastResult.get(report.id).timestamp);
-            const headerrate =
-              (8 * (headerBytes - lastResult.get(report.id).headerBytesSent)) /
-              (now - lastResult.get(report.id).timestamp);
-
-            // append to chart
-            bitrateSeries.addPoint(now, bitrate);
-            headerrateSeries.addPoint(now, headerrate);
-            bitrateGraph.setDataSeries([bitrateSeries, headerrateSeries]);
-            bitrateGraph.updateEndDate();
-
-            // calculate number of packets and append to chart
-            packetSeries.addPoint(
-              now,
-              packets - lastResult.get(report.id).packetsSent
-            );
-            packetGraph.setDataSeries([packetSeries]);
-            packetGraph.updateEndDate();
-          }
-        }
-      });
-      lastResult = res;
-    });
-  }
-}, 1000);
-
-socket.on("connect_error", (err) => {
-  console.log(err);
-});
-socket.on("connect_failed", (err) => {
-  console.log(err);
-});
+};
