@@ -57,6 +57,14 @@ module.exports = (server) => {
 
             if (isOwner) {
                 io.to(id).emit("dm-session-ended");
+                io.of("/")
+                    .in(id)
+                    .clients((error, socketIds) => {
+                        if (error) throw error;
+                        socketIds.forEach((socketId) =>
+                            io.sockets.sockets[socketId].leave(id)
+                        );
+                    });
             } else {
                 roomsMap[roomIndex].connections = roomsMap[
                     roomIndex

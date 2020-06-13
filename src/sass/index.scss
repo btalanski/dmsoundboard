@@ -1,10 +1,15 @@
 @import "~normalize.css/normalize.css";
 @import "variables";
+@import "bandwith";
 
 /* https://milligram.io/#getting-started*/
 
 @import "~milligram-sass/src/milligram";
 @import "base";
+body {
+    background-color: $color-initial;
+}
+
 .nav {
     display: flex;
     margin-bottom: 1rem;
@@ -44,6 +49,11 @@
     h5 {
         margin-bottom: .5rem;
     }
+    .content {
+        margin: 0.5rem 0;
+        padding: 1rem 2rem;
+        background-color: $color-quinary;
+    }
 }
 
 .title {
@@ -59,6 +69,7 @@
     display: inline-block;
     padding: 1rem;
     color: $color-initial;
+    margin: 0;
     a {
         text-decoration: underline;
         color: $color-initial;
@@ -75,28 +86,56 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
-    align-items: flex-start;
+    align-items: stretch;
     margin-left: -1rem;
     margin-right: -1rem;
     .item {
+        display: flex;
+        flex-direction: column;
         width: calc(20% - 1em);
         background: $color-quaternary;
         padding: 2rem;
         margin: 1rem;
-        >* {
-            display: flex;
-            width: 100%;
+        &.upload {
+            background-color: $color-quinary;
+            border: 3px dashed $color-quaternary;
         }
         .item-name {
             font-weight: bold;
             background-color: $color-initial;
         }
     }
+    .loop-wrapper {
+        margin: .5rem 0;
+        * {
+            margin: 0;
+        }
+        input {
+            margin-right: .5rem;
+        }
+    }
 }
 
-video {
-    width: 640px;
-    height: 360px;
-    display: inline-block;
-    object-fit: cover;
+.upload {
+    p {
+        text-align: center;
+        font-size: 3rem;
+        margin: 0
+    }
+}
+
+.settings {
+    ul {
+        li {
+            list-style: none;
+            label,
+            input {
+                margin: 0;
+            }
+        }
+    }
+}
+
+.small {
+    font-size: 1.3rem;
 }

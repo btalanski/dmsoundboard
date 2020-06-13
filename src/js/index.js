@@ -1,210 +1,473 @@
-import "../sass/index.scss";
 import io from "socket.io-client";
-import { webRtcConfig as webRTC } from "./webRtcConfig";
-import { audioContext } from "./audio";
+import adapter from "webrtc-adapter";
+import "../sass/index.scss";
+
+import {
+  removeBandwidthRestriction,
+  updateBandwidthRestriction,
+} from "./bandwidth-controls";
+import { TimelineDataSeries, TimelineGraphView } from "../third-party/graph";
+
+import { webRtcConfig as webRTC } from "./common/webRtcConfig";
+import { audioContext } from "./common/audio";
 
 const socket = io(window.location.origin);
 
-const audioSources = [];
+// This is appended to our webRTC audio stream
 const mediaStreamDestination = audioContext.createMediaStreamDestination();
+
+// Audio sources
+const audioSources = [];
 
 // List of socket ids from connected players
 let playersConnected = [];
+let canWatchGraphs = false;
 
 // WebRTC data
 const peerConnections = {};
 
+// Bandwith controls
+const bandwidthSelector = document.querySelector("select#bandwidth");
+let maxBandwidth = 0;
+
+let bitrateGraph;
+let bitrateSeries;
+let headerrateSeries;
+
+let packetGraph;
+let packetSeries;
+
+let lastResult;
+
 const updateRoomLink = (roomId) => {
-    const $roomLink = document.getElementById("roomLink");
-    const url = `${window.location.origin}/session.html?roomId=${roomId}`;
-    $roomLink.innerHTML = url;
-    $roomLink.href = url;
+  const $roomLink = document.getElementById("roomLink");
+  const url = `${window.location.origin}/session.html?roomId=${roomId}`;
+  $roomLink.innerHTML = url;
+  $roomLink.href = url;
 };
 
-const createAudioPlayer = () => {
-    const count = document.getElementsByClassName("audio-player");
-    const player = document.createElement("audio");
-    player.id = `audio-player-${count.length}`;
-    player.classList.add("audio-player");
-    player.controls = true;
-    player.loop = true;
-    return player;
+// To do: How can this be improved ?
+const createSoundBoardItem = (player) => {
+  console.log("createSoundBoardItem");
+  const count = document.getElementsByClassName("item-name").length;
+
+  const item = document.createElement("div");
+  item.classList.add("item");
+
+  const itemName = document.createElement("input");
+  itemName.value = `Audio ${count + 1}`;
+  item.id = `inputName[${count}]`;
+  item.name = `inputName[${count}]`;
+  itemName.classList.add("item-name");
+
+  const loopWrapper = document.createElement("div");
+  loopWrapper.classList.add("loop-wrapper");
+
+  const loopLabel = document.createElement("label");
+  loopLabel.htmlFor = `loopControl[${count}]`;
+
+  const loopControl = document.createElement("input");
+  loopControl.type = "checkbox";
+  loopControl.id = `loopControl[${count}]`;
+  loopControl.name = `loopControl[${count}]`;
+  loopControl.checked = true;
+
+  loopControl.addEventListener("change", function (e) {
+    // To do: New way to loop based on audio source
+    const index = e.target.name.match(/\d+/g); //regex to extract a number from a string
+    audioSources[index].loop = e.target.checked;
+  });
+
+  loopLabel.append(loopControl);
+  loopLabel.append("Loop");
+  loopWrapper.append(loopLabel);
+
+  item.append(itemName);
+  item.append(loopWrapper);
+
+  return item;
 };
 
-const createSoundBoardItem = () => {
-    const count = document.getElementsByClassName("item-name");
-
-    const item = document.createElement("div");
-    item.classList.add("item");
-
-    const itemName = document.createElement("input");
-    itemName.value = `Audio ${count.length + 1}`;
-    item.id = `inputName[${count.length}]`;
-    item.name = `inputName[${count.length}]`;
-    itemName.classList.add("item-name");
-
-    const loopControl = document.createElement("input");
-    loopControl.type = "checkbox";
-    loopControl.id = `loopControl[${count.length}]`;
-    loopControl.name = `loopControl[${count.length}]`;
-
-    item.append(itemName);
-    item.append(loopControl);
-    return item;
-};
-
-const addSoundBoardItem = (userFile) => {
-    console.log(userFile);
-    const $board = document.getElementById("soundboard");
-    const player = createAudioPlayer();
+// To do: Can this be improved ?
+const addSoundBoardItem = (file) => {
+  console.log("addSoundBoardItem");
+  preloadAudioAndConnectToStreamDestination(file).then((source) => {
+    audioSources.push(source);
     const $soundBoardItem = createSoundBoardItem();
-    $soundBoardItem.append(player);
+    document.getElementById("soundboard").append($soundBoardItem);
+  });
+};
 
+// To do: Can this be improved ?
+const preloadAudioAndConnectToStreamDestination = (file) => {
+  console.log("preloadAudioAndConnectToStreamDestination");
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = function(file) {
-        console.log("###FILE", file);
-        player.src = file.target.result;
-        audioSources.push(file.target.result);
-        // player.play();
+    reader.onload = () => {
+      audioContext.decodeAudioData(reader.result).then((buffer) => {
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        source.start(0);
+        // We need to connect the sound output to our webRTC stream destination
+        // so the other peers can receive the audio
+        source.connect(audioContext.destination);
+        source.connect(mediaStreamDestination);
+        // Push to array
+        resolve(source);
+      });
     };
-    reader.readAsDataURL(userFile.files[0]);
 
-    $board.append($soundBoardItem);
+    reader.onerror = reject;
+
+    reader.readAsArrayBuffer(file);
+  });
 };
 
-const updateConnectedPlayersDisplay = () => {
-    console.log("updateConnectedPlayersDisplay");
-    const $elem = document.getElementById("connectedPlayers");
-    $elem.innerHTML = playersConnected.length;
+const updateConnectedPlayersDisplay = (playersConnected = []) => {
+  console.log("updateConnectedPlayersDisplay");
+  const $elem = document.getElementById("connectedPlayers");
+  $elem.innerHTML = playersConnected.length;
 };
 
-const playExperiment = () => {
-    const testSources = [];
-    const requests = [];
+const setupMasterAudioControls = () => {
+  // Setup for Master audio controls
+  const source = audioContext.createMediaStreamSource(
+    mediaStreamDestination.stream
+  );
+  const gainNode = audioContext.createGain();
+  source.connect(gainNode);
+  gainNode.connect(audioContext.destination);
 
-    audioSources.map((item) => requests.push(new Request(item)));
-
-    requests.map((req, index) => {
-        fetch(req)
-            .then((response) => {
-                return response.arrayBuffer();
-            })
-            .then((buffer) => {
-                audioContext.decodeAudioData(buffer, (decodedAudioData) => {
-                    testSources[index] = audioContext.createBufferSource();
-                    testSources[index].buffer = decodedAudioData;
-                    testSources[index].connect(audioContext.destination); // Connect to local output device
-                    testSources[index].connect(mediaStreamDestination); // Connect to our virtual stream destination
-                    testSources[index].start();
-                });
-            });
-    });
-
-    console.log("###END", audioContext, testSources);
+  const muteAudio = document.getElementById("muteAudio");
+  muteAudio.checked = false;
+  muteAudio.addEventListener("change", function () {
+    console.log("muteAudio");
+    const muteLabel = document.getElementById("muteLabel");
+    if (this.checked) {
+      muteLabel.innerHTML = "Unmute audio";
+      gainNode.gain.setValueAtTime(-1, audioContext.currentTime);
+    } else {
+      muteLabel.innerHTML = "Mute audio";
+      gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+    }
+  });
 };
 
-const setExperimentCallback = () => {
-    const action = document.getElementById("playExperiment");
-    action.addEventListener("click", playExperiment);
-};
-
-const init = () => {
-    console.log("init app...");
-    const $audioInput = document.getElementById("audioInput");
-    $audioInput.addEventListener("change", function() {
-        addSoundBoardItem(this);
-    });
-    setExperimentCallback();
-    updateConnectedPlayersDisplay();
+const handleDropUpload = (files) => {
+  for (let i = 0; i < files.length; i++) {
+    addSoundBoardItem(files[i]);
+  }
 };
 
 // Initiates a connection request to a Peer
 const connectToPeer = (peerId) => {
-    console.log("connectToPeer");
+  console.log("connectToPeer");
 
-    const peerConnection = new RTCPeerConnection(webRTC);
+  const peerConnection = new RTCPeerConnection(webRTC);
 
-    // Stores peerId on a global state var
-    peerConnections[peerId] = peerConnection;
+  // Stores peerId on a global state var
+  peerConnections[peerId] = peerConnection;
 
-    // Create an empty MediaStream so we can send the initial audio track
-    // to the connected peer
-    const stream = new MediaStream();
-    const track = mediaStreamDestination.stream.getAudioTracks()[0];
-    peerConnection.addTrack(track, stream);
+  // Create an empty MediaStream so we can send the initial audio track
+  // to the connected peer
+  const stream = new MediaStream();
+  const track = mediaStreamDestination.stream.getAudioTracks()[0];
+  peerConnection.addTrack(track, stream);
 
-    // Called when we receive an ICE candidate
-    peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-            socket.emit("webrtc-candidate", peerId, event.candidate);
-        }
-    };
+  // Called when we receive an ICE candidate
+  peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+      socket.emit("webrtc-candidate", peerId, event.candidate);
+    }
+  };
 
-    // Create a connection offer, set localDescription and emit a socket event
-    peerConnection
-        .createOffer()
-        .then((sdp) => peerConnection.setLocalDescription(sdp))
-        .then(() => {
-            socket.emit("webrtc-offer", peerId, peerConnection.localDescription);
-        });
+  // Create a connection offer, set localDescription and emit a socket event
+  peerConnection
+    .createOffer()
+    .then((sdp) => peerConnection.setLocalDescription(sdp))
+    .then(() => {
+      socket.emit("webrtc-offer", peerId, peerConnection.localDescription);
+    });
 };
 
+const bootstrap = () => {
+  console.log("init app...");
+
+  setupMasterAudioControls();
+
+  const $dropElem = document.getElementById("dropUpload");
+  $dropElem.addEventListener(
+    "dragover",
+    function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    false
+  );
+  $dropElem.addEventListener(
+    "dragenter",
+    function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    false
+  );
+  $dropElem.addEventListener(
+    "dragleave",
+    function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    false
+  );
+  $dropElem.addEventListener(
+    "drop",
+    function (event) {
+      handleDropUpload(event.dataTransfer.files);
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    false
+  );
+};
+// Initial setup
+bootstrap();
+
 socket.on("connect", () => {
-    console.log("connected to server");
+  console.log("connected to server");
 
-    // Send request to create a new DM room
-    socket.emit("create-dm-room");
+  // Send request to create a new DM room
+  socket.emit("create-dm-room");
 
-    // Response from create DM room request
-    socket.on("created-dm-room", (data) => updateRoomLink(data));
+  // Response from create DM room request
+  socket.on("created-dm-room", (data) => updateRoomLink(data));
 
-    // New player joined the session
-    socket.on("player-joined", (playerId) => {
-        console.log("player-joined", playerId);
+  // New player joined the session
+  socket.on("player-joined", (playerId) => {
+    console.log("player-joined", playerId);
+    bandwidthSelector.disabled = false;
+    enableBandwidthControls(playerId);
 
-        //Update connected players array
-        playersConnected.push(playerId);
-        console.log("playersConnected:", playersConnected);
+    //Update connected players array
+    playersConnected.push(playerId);
 
-        // Update UI
-        updateConnectedPlayersDisplay();
+    // Update UI
+    updateConnectedPlayersDisplay(playersConnected);
 
-        // Initialize webRTC connection
-        connectToPeer(playerId);
+    // Initialize webRTC connection
+    connectToPeer(playerId);
+  });
+
+  // Player left the session
+  socket.on("player-left", (playerId) => {
+    console.log("player-left", playerId);
+
+    // Update list of connected player sockets
+    playersConnected = playersConnected.filter((id) => id !== playerId);
+
+    // Update connected peers state
+    if (peerConnections[playerId]) {
+      peerConnections[playerId].close();
+      delete peerConnections[playerId];
+    }
+
+    // Update UI
+    updateConnectedPlayersDisplay(playersConnected);
+    // disables bandwith controls when we have 0 players
+    if (playersConnected.length === 0) bandwidthSelector.disabled = true;
+  });
+
+  socket.on("webrtc-answer", (id, description) => {
+    console.log("webrtc-answer", id, description);
+    peerConnections[id].setRemoteDescription(description);
+  });
+
+  socket.on("webrtc-candidate", (id, candidate) => {
+    console.log("webrtc-candidate", id, candidate);
+    peerConnections[id].addIceCandidate(new RTCIceCandidate(candidate));
+  });
+
+  // Close the socket connection on browser window close
+  window.onbeforeunload = () => {
+    socket.close();
+    audioContext.close().then(function () {
+      console.log("audioContext closed");
     });
+  };
+});
 
-    // Player left the session
-    socket.on("player-left", (playerId) => {
-        console.log("player-left", playerId);
+// Query getStats every second
+// TODO: Look for a way to achieve the same results without a setInterval
+window.setInterval(() => {
+  if (canWatchGraphs) {
+    //TODO: This needs to be refactored to handle all peers.
+    const currentConnection = playersConnected.length
+      ? peerConnections[playersConnected[0]]
+      : {};
 
-        // Update list of connected player sockets
-        playersConnected = playersConnected.filter((id) => id !== playerId);
-        console.log(playersConnected);
+    if (!currentConnection) {
+      return;
+    }
 
-        // Update connected peers state
-        if (peerConnections[playerId]) {
-            peerConnections[playerId].close();
-            delete peerConnections[playerId];
+    // What is this sender?
+    // https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpSender
+    const sender = currentConnection.getSenders()[0];
+
+    if (!sender) {
+      return;
+    }
+
+    console.log("###SENDER", sender);
+    sender.getStats().then((res) => {
+      res.forEach((report) => {
+        let bytes;
+        let headerBytes;
+        let packets;
+        if (report.type === "outbound-rtp") {
+          if (report.isRemote) {
+            return;
+          }
+
+          const now = report.timestamp;
+          bytes = report.bytesSent;
+          headerBytes = report.headerBytesSent;
+
+          packets = report.packetsSent;
+          if (lastResult && lastResult.has(report.id)) {
+            // calculate bitrate
+            const bitrate =
+              (8 * (bytes - lastResult.get(report.id).bytesSent)) /
+              (now - lastResult.get(report.id).timestamp);
+            const headerrate =
+              (8 * (headerBytes - lastResult.get(report.id).headerBytesSent)) /
+              (now - lastResult.get(report.id).timestamp);
+
+            // append to chart
+            bitrateSeries.addPoint(now, bitrate);
+            headerrateSeries.addPoint(now, headerrate);
+            bitrateGraph.setDataSeries([bitrateSeries, headerrateSeries]);
+            bitrateGraph.updateEndDate();
+
+            // calculate number of packets and append to chart
+            packetSeries.addPoint(
+              now,
+              packets - lastResult.get(report.id).packetsSent
+            );
+            packetGraph.setDataSeries([packetSeries]);
+            packetGraph.updateEndDate();
+          }
+        }
+      });
+      lastResult = res;
+    });
+  }
+}, 1000);
+
+socket.on("connect_error", (err) => {
+  console.log(err);
+});
+socket.on("connect_failed", (err) => {
+  console.log(err);
+});
+
+// TODO: Simplify/improve readability
+const enableBandwidthControls = (playerId) => {
+  // Fire up the graph visualizations
+  bitrateSeries = new TimelineDataSeries();
+  bitrateGraph = new TimelineGraphView("bitrateGraph", "bitrateCanvas");
+  bitrateGraph.updateEndDate();
+
+  headerrateSeries = new TimelineDataSeries();
+  headerrateSeries.setColor("green");
+
+  packetSeries = new TimelineDataSeries();
+  packetGraph = new TimelineGraphView("packetGraph", "packetCanvas");
+  packetGraph.updateEndDate();
+
+  // TODO: Refactor to handle all peer connections.
+  // Renegotiate bandwidth on the fly.
+  bandwidthSelector.onchange = () => {
+    bandwidthSelector.disabled = true;
+    const bandwidth =
+      bandwidthSelector.options[bandwidthSelector.selectedIndex].value;
+
+    // In Chrome, use RTCRtpSender.setParameters to change bandwidth without
+    // (local) renegotiation. Note that this will be within the envelope of
+    // the initial maximum bandwidth negotiated via SDP.
+    if (
+      (adapter.browserDetails.browser === "chrome" ||
+        adapter.browserDetails.browser === "safari" ||
+        (adapter.browserDetails.browser === "firefox" &&
+          adapter.browserDetails.version >= 64)) &&
+      "RTCRtpSender" in window &&
+      "setParameters" in window.RTCRtpSender.prototype
+    ) {
+      const currentConnection = peerConnections[playerId];
+      let keys = Object.keys(peerConnections);
+      let connectionsSenders = [];
+      let connectionsSendersParameters = [];
+
+      for (let key of keys) {
+        //in this case, we have always only one track because it is an audio streaming
+        // that is why we use [0];
+        connectionsSenders.push(peerConnections[key].getSenders()[0]);
+        connectionsSendersParameters.push(
+          peerConnections[key].getSenders()[0].getParameters()
+        );
+      }
+
+      // Loop over all connections and set the new parameters
+      connectionsSendersParameters.map((parameters, index) => {
+        if (!parameters.encodings) {
+          parameters.encodings = [{}];
+        }
+        if (bandwidth === "unlimited") {
+          delete parameters.encodings[0].maxBitrate;
+        } else {
+          parameters.encodings[0].maxBitrate = bandwidth * 1000;
         }
 
-        // Update UI
-        updateConnectedPlayersDisplay();
-    });
+        connectionsSenders[index]
+          .setParameters(parameters)
+          .then(() => {
+            console.log("###Bandwidth updated!");
+            bandwidthSelector.disabled = false;
+            canWatchGraphs = true;
+          })
+          .catch((e) => console.error("Bandwidth update params failed: ", e));
+      });
+      return;
+    }
 
-    socket.on("webrtc-answer", (id, description) => {
-        console.log("webrtc-answer", id, description);
-        peerConnections[id].setRemoteDescription(description);
-    });
-
-    socket.on("webrtc-candidate", (id, candidate) => {
-        console.log("webrtc-candidate", id, candidate);
-        peerConnections[id].addIceCandidate(new RTCIceCandidate(candidate));
-    });
-
-    // Close the socket connection on browser window close
-    window.onunload = window.onbeforeunload = () => {
-        socket.close();
-    };
-
-    init();
-});
+    // TODO: Properly test this fallback and refactor to handle multiple connections
+    // Fallback to the SDP munging with local renegotiation way of limiting
+    // the bandwidth.
+    // currentConnection
+    //   .createOffer()
+    //   .then((offer) => currentConnection.setLocalDescription(offer))
+    //   .then(() => {
+    //     const desc = {
+    //       type: currentConnection.remoteDescription.type,
+    //       sdp:
+    //         bandwidth === "unlimited"
+    //           ? removeBandwidthRestriction(
+    //               currentConnection.remoteDescription.sdp
+    //             )
+    //           : updateBandwidthRestriction(
+    //               currentConnection.remoteDescription.sdp,
+    //               bandwidth
+    //             ),
+    //     };
+    //     console.log(
+    //       "Applying bandwidth restriction to setRemoteDescription:\n" + desc.sdp
+    //     );
+    //     return currentConnection.setRemoteDescription(desc);
+    //   })
+    //   .then(() => {
+    //     bandwidthSelector.disabled = false;
+    //     canWatchGraphs = true;
+    //   })
+    //   .catch(onSetSessionDescriptionError);
+  };
+};
