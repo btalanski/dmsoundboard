@@ -8,8 +8,8 @@ import {
 } from "./bandwidth-controls";
 import { TimelineDataSeries, TimelineGraphView } from "../third-party/graph";
 
-import { webRtcConfig as webRTC } from "./webRtcConfig";
-import { audioContext } from "./audio";
+import { webRtcConfig as webRTC } from "./common/webRtcConfig";
+import { audioContext } from "./common/audio";
 
 const socket = io(window.location.origin);
 
