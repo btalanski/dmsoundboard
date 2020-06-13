@@ -72,8 +72,10 @@ const createSoundBoardItem = (player) => {
   loopControl.name = `loopControl[${count}]`;
   loopControl.checked = true;
 
-  loopControl.addEventListener("change", function () {
+  loopControl.addEventListener("change", function (e) {
     // To do: New way to loop based on audio source
+    const index = e.target.name.match(/\d+/g) //regex to extract a number from a string
+    audioSources[index].loop = e.target.checked;
   });
 
   loopLabel.append(loopControl);
