@@ -74,7 +74,7 @@ const createSoundBoardItem = (player) => {
 
   loopControl.addEventListener("change", function (e) {
     // To do: New way to loop based on audio source
-    const index = e.target.name.match(/\d+/g) //regex to extract a number from a string
+    const index = e.target.name.match(/\d+/g); //regex to extract a number from a string
     audioSources[index].loop = e.target.checked;
   });
 
@@ -189,18 +189,6 @@ const connectToPeer = (peerId) => {
     .then(() => {
       socket.emit("webrtc-offer", peerId, peerConnection.localDescription);
     });
-
-  //fire up the graph visualizations
-  bitrateSeries = new TimelineDataSeries();
-  bitrateGraph = new TimelineGraphView("bitrateGraph", "bitrateCanvas");
-  bitrateGraph.updateEndDate();
-
-  headerrateSeries = new TimelineDataSeries();
-  headerrateSeries.setColor("green");
-
-  packetSeries = new TimelineDataSeries();
-  packetGraph = new TimelineGraphView("packetGraph", "packetCanvas");
-  packetGraph.updateEndDate();
 };
 
 const bootstrap = () => {
@@ -257,8 +245,9 @@ socket.on("connect", () => {
 
   // New player joined the session
   socket.on("player-joined", (playerId) => {
-    bandwidthSelector.disabled = false;
     console.log("player-joined", playerId);
+    bandwidthSelector.disabled = false;
+    enableBandwidthControls(playerId);
 
     //Update connected players array
     playersConnected.push(playerId);
@@ -299,8 +288,6 @@ socket.on("connect", () => {
     peerConnections[id].addIceCandidate(new RTCIceCandidate(candidate));
   });
 
-  enableBandwidthControls();
-
   // Close the socket connection on browser window close
   window.onbeforeunload = () => {
     socket.close();
@@ -315,17 +302,17 @@ socket.on("connect", () => {
 window.setInterval(() => {
   if (canWatchGraphs) {
     //TODO: This needs to be refactored to handle all peers.
-    const firstPlayer = playersConnected.length
+    const currentConnection = playersConnected.length
       ? peerConnections[playersConnected[0]]
       : {};
 
-    if (!firstPlayer) {
+    if (!currentConnection) {
       return;
     }
 
     // What is this sender?
     // https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpSender
-    const sender = firstPlayer.getSenders()[0];
+    const sender = currentConnection.getSenders()[0];
 
     if (!sender) {
       return;
@@ -385,12 +372,22 @@ socket.on("connect_failed", (err) => {
 });
 
 // TODO: Simplify/improve readability
-const enableBandwidthControls = () => {
-  // Renegotiate bandwidth on the fly.
-  // TODO: This needs to be refactored to handle all peers.
-  bandwidthSelector.onchange = () => {
-    const firstPlayer = peerConnections[playersConnected[0]];
+const enableBandwidthControls = (playerId) => {
+  // Fire up the graph visualizations
+  bitrateSeries = new TimelineDataSeries();
+  bitrateGraph = new TimelineGraphView("bitrateGraph", "bitrateCanvas");
+  bitrateGraph.updateEndDate();
 
+  headerrateSeries = new TimelineDataSeries();
+  headerrateSeries.setColor("green");
+
+  packetSeries = new TimelineDataSeries();
+  packetGraph = new TimelineGraphView("packetGraph", "packetCanvas");
+  packetGraph.updateEndDate();
+
+  // TODO: Refactor to handle all peer connections.
+  // Renegotiate bandwidth on the fly.
+  bandwidthSelector.onchange = () => {
     bandwidthSelector.disabled = true;
     const bandwidth =
       bandwidthSelector.options[bandwidthSelector.selectedIndex].value;
@@ -406,51 +403,71 @@ const enableBandwidthControls = () => {
       "RTCRtpSender" in window &&
       "setParameters" in window.RTCRtpSender.prototype
     ) {
-      const sender = firstPlayer.getSenders()[0];
-      const parameters = sender.getParameters();
-      if (!parameters.encodings) {
-        parameters.encodings = [{}];
-      }
-      if (bandwidth === "unlimited") {
-        delete parameters.encodings[0].maxBitrate;
-      } else {
-        parameters.encodings[0].maxBitrate = bandwidth * 1000;
+      const currentConnection = peerConnections[playerId];
+      let keys = Object.keys(peerConnections);
+      let connectionsSenders = [];
+      let connectionsSendersParameters = [];
+
+      for (let key of keys) {
+        //in this case, we have always only one track because it is an audio streaming
+        // that is why we use [0];
+        connectionsSenders.push(peerConnections[key].getSenders()[0]);
+        connectionsSendersParameters.push(
+          peerConnections[key].getSenders()[0].getParameters()
+        );
       }
 
-      sender
-        .setParameters(parameters)
-        .then(() => {
-          bandwidthSelector.disabled = false;
-          canWatchGraphs = true;
-        })
-        .catch((e) => console.error(e));
+      // Loop over all connections and set the new parameters
+      connectionsSendersParameters.map((parameters, index) => {
+        if (!parameters.encodings) {
+          parameters.encodings = [{}];
+        }
+        if (bandwidth === "unlimited") {
+          delete parameters.encodings[0].maxBitrate;
+        } else {
+          parameters.encodings[0].maxBitrate = bandwidth * 1000;
+        }
+
+        connectionsSenders[index]
+          .setParameters(parameters)
+          .then(() => {
+            console.log("###Bandwidth updated!");
+            bandwidthSelector.disabled = false;
+            canWatchGraphs = true;
+          })
+          .catch((e) => console.error("Bandwidth update params failed: ", e));
+      });
       return;
     }
+
+    // TODO: Properly test this fallback and refactor to handle multiple connections
     // Fallback to the SDP munging with local renegotiation way of limiting
     // the bandwidth.
-    firstPlayer
-      .createOffer()
-      .then((offer) => firstPlayer.setLocalDescription(offer))
-      .then(() => {
-        const desc = {
-          type: firstPlayer.remoteDescription.type,
-          sdp:
-            bandwidth === "unlimited"
-              ? removeBandwidthRestriction(firstPlayer.remoteDescription.sdp)
-              : updateBandwidthRestriction(
-                  firstPlayer.remoteDescription.sdp,
-                  bandwidth
-                ),
-        };
-        console.log(
-          "Applying bandwidth restriction to setRemoteDescription:\n" + desc.sdp
-        );
-        return firstPlayer.setRemoteDescription(desc);
-      })
-      .then(() => {
-        bandwidthSelector.disabled = false;
-        canWatchGraphs = true;
-      })
-      .catch(onSetSessionDescriptionError);
+    // currentConnection
+    //   .createOffer()
+    //   .then((offer) => currentConnection.setLocalDescription(offer))
+    //   .then(() => {
+    //     const desc = {
+    //       type: currentConnection.remoteDescription.type,
+    //       sdp:
+    //         bandwidth === "unlimited"
+    //           ? removeBandwidthRestriction(
+    //               currentConnection.remoteDescription.sdp
+    //             )
+    //           : updateBandwidthRestriction(
+    //               currentConnection.remoteDescription.sdp,
+    //               bandwidth
+    //             ),
+    //     };
+    //     console.log(
+    //       "Applying bandwidth restriction to setRemoteDescription:\n" + desc.sdp
+    //     );
+    //     return currentConnection.setRemoteDescription(desc);
+    //   })
+    //   .then(() => {
+    //     bandwidthSelector.disabled = false;
+    //     canWatchGraphs = true;
+    //   })
+    //   .catch(onSetSessionDescriptionError);
   };
 };
