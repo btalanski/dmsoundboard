@@ -371,6 +371,13 @@ socket.on("connect", () => {
     };
 });
 
+socket.on("connect_error", (err) => {
+    console.log(err);
+});
+socket.on("connect_failed", (err) => {
+    console.log(err);
+});
+
 // Query getStats every second
 // TODO: Look for a way to achieve the same results without a setInterval
 window.setInterval(() => {
@@ -438,13 +445,6 @@ window.setInterval(() => {
         });
     }
 }, 1000);
-
-socket.on("connect_error", (err) => {
-    console.log(err);
-});
-socket.on("connect_failed", (err) => {
-    console.log(err);
-});
 
 // TODO: Simplify/improve readability
 const enableBandwidthControls = (playerId) => {
