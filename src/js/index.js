@@ -376,8 +376,9 @@ socket.on("connect", () => {
 window.setInterval(() => {
     if (canWatchGraphs) {
         //TODO: This needs to be refactored to handle all peers.
-        const currentConnection = connectedPlayers.length ?
-            peerConnections[connectedPlayers[0]] :
+        const currentConnection =
+            connectedPlayers > 0 ?
+            peerConnections[Object.keys(peerConnections)[0]] :
             {};
 
         if (!currentConnection) {
