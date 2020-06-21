@@ -38,4 +38,11 @@ const socket = require("./socket")(server);
 
 server.listen(app.get("port"), function() {
     console.log("Server listening on port " + app.get("port"));
+
+    if (process.env.USE_NGROK) {
+        const ngrok = require("ngrok");
+        ngrok.connect(app.get("port")).then((url) => {
+            console.log("Ngrok url: ", url);
+        });
+    }
 });

@@ -5,34 +5,38 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- video {
-  --width: 45%;
-  width: var(--width);
-  height: calc(var(--width) * 0.75);
+
+video {
+    --width: 45%;
+    width: var(--width);
+    height: calc(var(--width) * 0.75);
 }
 
 button {
-  margin: 0 20px 0 0;
-  width: 96px;
+    margin: 0 20px 0 0;
+    width: 96px;
 }
 
 video#localVideo {
-  margin: 0 20px 20px 0;
+    margin: 0 20px 20px 0;
 }
 
 div.label {
-  display: inline-block;
-  font-weight: 400;
-  width: 120px;
+    display: inline-block;
+    font-weight: 400;
+    width: 120px;
 }
 
 div.graph-container {
-  float: left;
-  margin: 0.5em;
-  width: calc(50% - 1em);
+    float: left;
+    margin: 0.5em;
+    width: calc(50% - 1em);
 }
 
 .bandwith-container {
-  margin: 0 auto 0 auto;
-  max-width: 60em;
+    margin: 0 auto 0 auto;
+    max-width: 60em;
+    &.hidden {
+        display: none;
+    }
 }

@@ -16,16 +16,19 @@ The soundboard allows the DM to upload files from her computer and stream it to 
 - NPM version: ^6.9.0;
 
 ## To do list for v0.2.0:
-- [] Control individual audio sources (play/pause/loop/stop/volume);
+- [x] Control individual audio sources (play/loop/stop);
+- [ ] Control individual audio sources (pause/volume)
 - [x] Mix audio sources and stream;
-- [ ] Add master audio control
-- [ ] Create client UI;
-- [ ] Improve UI socket events handling;
+- [x] Add master audio control
+- [x] Create client UI;
+- [x] Improve UI socket events handling;
+- [x] Serve using ngrok
+
 
 ## Known issues for v0.2.0:
 - [ ] Audio stutter on Firefox;
 - [ ] Can't drag and drop multiple files
-- [ ] 
+- [ ] Audio playing multiple times
 
 ## To do list for v0.1.0:
 - [x] HTTP server;
