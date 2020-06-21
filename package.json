@@ -7,7 +7,8 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "dev": "cross-env NODE_ENV=development nodemon --inspect -r dotenv/config ./index.js",
         "build": "cross-env NODE_ENV=production webpack --config ./webpack.config.js --progress --profile --colors",
-        "start": "cross-env NODE_ENV=production nodemon ./index.js"
+        "start": "cross-env NODE_ENV=production nodemon ./index.js",
+        "serve": "cross-env NODE_ENV=production USE_NGROK=true nodemon ./index.js"
     },
     "author": "Bruno Talanski (https://github.com/btalanski)",
     "contributors": [
@@ -39,15 +40,15 @@
         "webpack-dev-middleware": "^3.7.2",
         "webpack-dev-server": "^3.11.0",
         "webpack-hot-middleware": "^2.25.0",
-        "webpack-merge": "^4.2.2"
+        "webpack-merge": "^4.2.2",
+        "webrtc-adapter": "^7.6.1"
     },
     "dependencies": {
         "express": "^4.17.1",
         "http": "0.0.1-security",
-        "lodash": "^4.17.15",
+        "ngrok": "3.2.7",
         "nodemon": "^2.0.4",
         "shortid": "^2.2.15",
-        "socket.io": "^2.3.0",
-        "webrtc-adapter": "^7.6.1"
+        "socket.io": "^2.3.0"
     }
 }

@@ -104,6 +104,10 @@ const createSoundBoardItem = (count) => {
             const newSource = audioContext.createBufferSource();
             newSource.buffer = audioSources[target].buffer;
 
+            // Disconnect old source from context
+            audioSources[target].disconnect(audioContext.destination);
+            audioSources[target].disconnect(mediaStreamDestination);
+
             // Connects the new source to the context and start it
             newSource.connect(audioContext.destination);
             newSource.connect(mediaStreamDestination);
@@ -112,6 +116,9 @@ const createSoundBoardItem = (count) => {
             // Replace source
             audioSources[target] = newSource;
             audioSources[target].isPlaying = true;
+            audioSources[target].loop = document.getElementById(
+                `loopControl[${target}]`
+            ).checked;
         }
     });
     controlsWrapper.append(playControl);

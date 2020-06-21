@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>
+        Soundboard - DM Soundboard
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+<link href="style.7c1f.css" rel="stylesheet"></head>
+
+<body>
+    <nav role="main" class="nav">
+        <div class="brand">
+            <a href="#">DM Soundboard</a>
+        </div>
+        <div class="menu">
+            <a href="">About</a>
+            <a href="">FAQ</a>
+        </div>
+    </nav>
+
+    <section class="section" id="header">
+        <header>
+            <h1>DM Soundboard</h1>
+        </header>
+        <h4>Stream ambient sounds to your party and make your games more immersive.</h4>
+        <hr/>
+    </section>
+
+    <section class="section" id="intro">
+        <header>
+            <h4 class="title">Getting started</h3>
+        </header>
+        <div class="content">
+            <ol class="steps">
+                <li>Upload some sound files;</li>
+                <li>Share the session link with the other party members;</li>
+                <li>Have fun!</li>
+            </ol>
+            <p class="room-link">
+                <span>Session link:</span>
+                <a href="#" target="_blank" id="roomLink"></a>
+            </p>
+            <p class="room-link">
+                Connected players: <span id="connectedPlayers">0</span>
+            </p>
+        </div>
+    </section>
+    <section class="section">
+        <header>
+            <h4 class="title">Sound mixer</h4>
+        </header>
+        <div class="content">
+            <div class="settings">
+                <ul>
+                    <li>
+                        <label for="muteAudio">
+                            <input type="checkbox" name="muteAudio" id="muteAudio" />
+                            <span class="mute-info" id="muteInfo">Mute audio</span>
+                        </label>
+                        <span class="small">(Changes only affect your local audio output.)</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="soundboard" id="soundboard">
+            <div class="item upload" id="dropUpload">
+                <p>Drop files here to upload.</p>
+            </div>
+        </div>
+    </section>
+    <section class="section">
+        <header>
+            <h4 class="title">Settings</h4>
+        </header>
+        <div class="content">
+            <div class="settings">
+                <ul>
+                    <li>
+                        <label for="bandwidth">
+                            <input type="checkbox" name="bandwidth" id="displayBandwidthControls" />
+                            <span id="bandwidth">Enable bandwith controls</span>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="section bandwith-container hidden" id="bandwithContainer">
+        <h4 class="title">Bandwidth controls</h4>
+        <p>Please note that for the time being, these charts are the measurements for the first connection</p>
+        <div id="buttons">
+            <label>Bandwidth:</label>
+            <select id="bandwidth" disabled>
+              <option value="unlimited" selected>unlimited</option>
+              <option value="2000">2000</option>
+              <option value="1000">1000</option>
+              <option value="500">500</option>
+              <option value="250">250</option>
+              <option value="125">125</option>
+          </select> kbps
+
+        </div>
+        <div class="graph-container" id="bitrateGraph">
+            <div>Bitrate</div>
+            <canvas id="bitrateCanvas"></canvas>
+        </div>
+        <div class="graph-container" id="packetGraph">
+            <div>Packets sent per second</div>
+            <canvas id="packetCanvas"></canvas>
+        </div>
+    </section>
+
+<script src="app.7c1f.js"></script></body>
+
+</html>
