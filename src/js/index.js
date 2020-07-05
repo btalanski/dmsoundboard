@@ -145,31 +145,21 @@ const createSoundBoardItem = (count) => {
   // Volume Control
   const volumeControlWrapper = document.createElement("div");
   const volumeControlInput = document.createElement("input");
-  volumeControlInput.type = 'range';
-  volumeControlInput.min = 0;
+  volumeControlInput.type = "range";
+  volumeControlInput.min = -100;
   volumeControlInput.max = 100;
   volumeControlInput.value = 100;
   volumeControlInput.setAttribute("targetAudio", count);
-  volumeControlInput.style.backgroundColor = '#FFF';
   const volumeControlLabel = document.createElement("label");
   volumeControlLabel.innerText = "Volume";
   volumeControlLabel.classList.add("volumeLabel");
 
   volumeControlInput.addEventListener("change", function (event) {
     const audioSource = audioSources[count];
-    const gainNode = audioContext.createGain();
+    const gainNode = gainNodes[count];
 
-    // Connect source to a gain node
-    audioSource.connect(gainNode);
-    // Connect gain node to destination
-    gainNode.connect(audioContext.destination);
-
-    const volume = event.target.value;
-    const fraction = parseInt(volume) / parseInt(event.target.max);
-    // Let's use an x*x curve (x-squared) since simple linear (x) does not
-    // sound as good.
-    gainNode.gain.value = fraction * fraction;
-    console.log('###DEBUG', gainNode.gain.value, fraction * fraction);
+    const newVolume = parseInt(event.target.value) / parseInt(event.target.max);
+    gainNode.gain.value = newVolume;
   });
 
   controlsWrapper.append(stopControl);
@@ -186,8 +176,9 @@ const createSoundBoardItem = (count) => {
 // To do: Can this be improved ?
 const addSoundBoardItem = (file) => {
   console.log("addSoundBoardItem");
-  preloadAudioAndConnectToStreamDestination(file).then((source) => {
+  preloadAudioAndConnectToStreamDestination(file).then(([source, gainNode]) => {
     audioSources.push(source);
+    gainNodes.push(gainNode);
     const $soundBoardItem = createSoundBoardItem(audioSources.length - 1);
     document.getElementById("soundboard").append($soundBoardItem);
   });
@@ -205,12 +196,22 @@ const preloadAudioAndConnectToStreamDestination = (file) => {
         source.loop = true;
         source.isPlaying = true;
         source.start(0);
+
+        // Create and set a gainNode for each audio to be able to control volume for each audio
+        const gainNode = audioContext.createGain();
+
+        // Connect source to a gain node
+        source.connect(gainNode);
+        // Connect gain node to destination
+        gainNode.connect(audioContext.destination);
+        gainNode.connect(mediaStreamDestination);
+
         // We need to connect the sound output to our webRTC stream destination
         // so the other peers can receive the audio
         source.connect(audioContext.destination);
         source.connect(mediaStreamDestination);
         // Push to array
-        resolve(source);
+        resolve([source, gainNode]);
       });
     };
 
