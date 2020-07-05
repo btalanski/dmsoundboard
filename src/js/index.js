@@ -197,7 +197,7 @@ const preloadAudioAndConnectToStreamDestination = (file) => {
         source.isPlaying = true;
         source.start(0);
 
-        // Create and set a gainNode for each audio to be able to control volume for each audio
+        // Create and set a gainNode for each audio to be able to control their volume
         const gainNode = audioContext.createGain();
 
         // Connect source to a gain node
