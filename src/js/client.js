@@ -1,3 +1,4 @@
+// TODO: Change implementation to remove the eslint-disable-next-line
 import '../sass/index.scss';
 import io from 'socket.io-client';
 import webRtcConfig from './common/webRtcConfig';
