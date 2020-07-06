@@ -1,6 +1,6 @@
-import audioContext from "../common/audio";
+import audioContext from '../common/audio';
 
-export class AudioSourceManager {
+class AudioSourceManager {
   constructor() {
     this.sources = [];
     this.audioCtx = audioContext;
@@ -12,12 +12,15 @@ export class AudioSourceManager {
     this.sources.push(source);
   }
 
-  removeSource(index) {
-    // Removes source from this.sources
-    // Disconnect source from audio context
-  }
-  get source(index) {
+  // removeSource(index) {
+  // Removes source from this.sources
+  // Disconnect source from audio context
+  // }
+
+  getSource(index) {
     // Returns a source by id
     return this.sources[index];
   }
 }
+
+export default AudioSourceManager;

@@ -13,13 +13,16 @@ export function updateBandwidthRestriction(sdp, bandwidth) {
   let modifier = 'AS';
   let bandwidthValue = bandwidth;
   if (adapter.browserDetails.browser === 'firefox') {
+    // eslint-disable-next-line
     bandwidthValue = (bandwidthValue >>> 0) * 1000;
     modifier = 'TIAS';
   }
   if (sdp.indexOf(`b=${modifier}:`) === -1) {
     // insert b= after c= line.
+    // eslint-disable-next-line
     sdp = sdp.replace(/c=IN (.*)\r\n/, `c=IN $1\r\nb=${modifier}:${bandwidthValue} \r\n`);
   } else {
+    // eslint-disable-next-line
     sdp = sdp.replace(
       new RegExp(`b=${modifier} + :.*\r\n`),
       `b= ${modifier}: ${bandwidthValue} \r\n`,

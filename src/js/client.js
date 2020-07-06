@@ -49,7 +49,9 @@ const init = (roomId) => {
     });
 
     socket.on('dm-session-ended', () => {
-      alert('The DM ended the session. Disconecting...');
+      // TODO: Implement custom modal
+      // eslint-disable-next-line
+      alert('The DM ended the session. Disconnecting...');
       socket.close();
     });
 
@@ -58,9 +60,8 @@ const init = (roomId) => {
       peerConnection.close();
     });
 
-    window.onunload = window.onbeforeunload = () => {
-      socket.close();
-    };
+    window.onbeforeunload = () => socket.close();
+    window.onunload = () => socket.close();
   });
 };
 
@@ -70,5 +71,7 @@ const roomId = urlParams.get('roomId');
 if (roomId) {
   init(roomId);
 } else {
+  // TODO: Implement a custom modal to avoid using alert()
+  // eslint-disable-next-line
   alert('No room to join');
 }

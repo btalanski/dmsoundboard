@@ -353,6 +353,7 @@ const bootstrap = () => {
 bootstrap();
 
 // TODO: Simplify/improve readability
+// eslint-disable-next-line
 const enableBandwidthControls = (playerId) => {
   // Fire up the graph visualizations
   bitrateSeries = new TimelineDataSeries();
@@ -382,17 +383,9 @@ const enableBandwidthControls = (playerId) => {
       'RTCRtpSender' in window &&
       'setParameters' in window.RTCRtpSender.prototype
     ) {
-      const currentConnection = peerConnections[playerId];
-      // const keys = Object.keys(peerConnections);
+      // const currentConnection = peerConnections[playerId];
       const connectionsSenders = [];
       const connectionsSendersParameters = [];
-
-      // for (let key of keys) {
-      //   // in this case, we have always only one track because it is an audio streaming
-      //   // that is why we use [0];
-      //   connectionsSenders.push(peerConnections[key].getSenders()[0]);
-      //   connectionsSendersParameters.push(peerConnections[key].getSenders()[0].getParameters());
-      // }
 
       peerConnections.forEach((item) => {
         // in this case, we have always only one track because it is an audio streaming
@@ -422,7 +415,6 @@ const enableBandwidthControls = (playerId) => {
           })
           .catch((e) => console.error('Bandwidth update params failed: ', e));
       });
-      return;
     }
 
     // TODO: Properly test this fallback and refactor to handle multiple connections

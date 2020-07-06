@@ -10,7 +10,7 @@
     "start": "cross-env NODE_ENV=production nodemon ./index.js",
     "serve": "cross-env NODE_ENV=production USE_NGROK=true nodemon ./index.js",
     "lint:css": "stylelint './src/**/*.scss'",
-    "lint:js": "npx eslint src/ -c ./.eslintrc.js",
+    "lint:js": "eslint src/ -c ./.eslintrc.js",
     "lint:js:diff": "lint-diff"
   },
   "pre-commit": {
